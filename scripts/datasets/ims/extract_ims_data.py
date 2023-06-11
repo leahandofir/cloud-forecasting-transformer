@@ -56,7 +56,7 @@ class IMSH5():
         # frames sampling
         assert (time_delta.seconds / 60) % 5 == 0
         self.time_delta = time_delta
-        if sunrise and sunset:
+        if sunrise is not None and sunset is not None:
             assert sunrise <= sunset
             assert sunset < timedelta(hours=24)
             self.sunrise = sunrise
@@ -79,14 +79,14 @@ class IMSH5():
             assert min(np.array(shape) <= np.array(IMG_SHAPES['png']))
         self.shape = shape
 
-        if not slice_x:
+        if slice_x is None:
             self.slice_x = slice(0, self.shape[0])
         else:
             assert not slice_x.step
             assert (slice_x.stop - slice_x.start) + 1 <= shape[0]
             self.slice_x = slice_x
 
-        if not slice_y:
+        if slice_y is None:
             self.slice_y = slice(0, self.shape[1])
         else:
             assert not slice_y.step
@@ -100,15 +100,15 @@ class IMSH5():
         self.h5_files_directory = (H5_FILES_DIRECTORY if h5_files_directory is None else h5_files_directory).format(
             img_type=self.img_type, year=self.year)
         self._h5_file_name(h5_file_name_format)
-        if not catalog_headers:
+        if catalog_headers is None:
             self.catalog_headers = CATALOG_HEADERS
         else:
             self.catalog_headers = catalog_headers
-        if not eumetsat_date_path:
+        if eumetsat_date_path is None:
             self.eumetsat_date_path = EUMETSAT_DATE_PATH
         else:
             self.eumetsat_date_path = eumetsat_date_path
-        if not eumetsat_frame_name:
+        if eumetsat_frame_name is None:
             self.eumetsat_frame_name = EUMETSAT_FRAME_NAME
         else:
             self.eumetsat_frame_name = eumetsat_frame_name
