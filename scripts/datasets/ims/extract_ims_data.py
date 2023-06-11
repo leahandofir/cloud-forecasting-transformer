@@ -35,7 +35,8 @@ class IMSH5():
                  h5_files_directory=None,
                  h5_file_name_format=None,
                  eumetsat_date_path=None,
-                 eumetsat_frame_name=None):
+                 eumetsat_frame_name=None,
+                 frequent_writes=False):
 
         # image type
         assert img_type in IMG_TYPES
@@ -114,6 +115,7 @@ class IMSH5():
 
         # setup
         self.verbose = verbose
+        self.frequent_writes = frequent_writes
         self.catalog = pd.DataFrame(columns=self.catalog_headers)
         self._set_data_dir()
 
@@ -142,18 +144,24 @@ class IMSH5():
 
     def extract_all(self):
         self._load_data()
+        if not self.frequent_writes: # save all the data one time
+            self._save_data()
         if self.verbose:
             print(f"saved {self.h5_file_name}")
 
-    def _save_data(self, event_id):
+    def _save_data(self, event_id=None):
         # save all data to h5 file
         file = h5py.File(self.file_path, "w")
         file.create_dataset('id', data=self._ids)
         file.create_dataset(self.img_type, data=self._events)
         file.close()
-        # save event_id to CATALOG
-        event = self.catalog[self.catalog["id"] == event_id]
-        event.to_csv(str(self.catalog_file_path), mode='a', index=False, header=False)
+        if event_id is not None:
+            # save event_id to CATALOG
+            event = self.catalog[self.catalog["id"] == event_id]
+            event.to_csv(str(self.catalog_file_path), mode='a', index=False, header=False)
+        else:
+            # write all to CATALOG
+            self.catalog.to_csv(str(self.catalog_file_path), mode='a', index=False, header=False)
 
     def _load_data(self):
         if self.sample_mode == 'sequent':
@@ -235,7 +243,8 @@ class IMSH5():
              'time_utc': start_event_time,
              'img_type': self.img_type, 'min_delta': self.time_delta.seconds / 60}, ignore_index=True)
 
-        self._save_data(event_id)  # save all to disk
+        if self.frequent_writes: # save all on every event
+            self._save_data(event_id)
 
         self._index += 1
 
@@ -299,6 +308,7 @@ def main():
         slice_x = None if len(f["slice_x"]) == 0 else slice(*tuple(f["slice_x"]))
         slice_y = None if len(f["slice_y"]) == 0 else slice(*tuple(f["slice_y"]))
         channels = f["channels"]
+        frequent_writes = f["frequent_writes"]
 
         h5_file = IMSH5(img_type=img_type,
                         time_delta=time_delta,
@@ -318,7 +328,8 @@ def main():
                         h5_files_directory=h5_files_directory,
                         h5_file_name_format=h5_file_name_format,
                         eumetsat_date_path=eumetsat_date_path,
-                        eumetsat_frame_name=eumetsat_frame_name)
+                        eumetsat_frame_name=eumetsat_frame_name,
+                        frequent_writes=frequent_writes)
 
         h5_file.extract_all()
 
