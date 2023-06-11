@@ -1,7 +1,7 @@
 dataset:
   dataset_name: "ims"
   img_type: "MIDDLE_EAST_VIS"
-  seq_len: 20
+  seq_len: 25
   raw_seq_len: 169
   stride: 12
   layout: "THWC"
@@ -30,7 +30,7 @@ optim:
   lr: 0.001
   wd: 0.0
   gradient_clip_val: 1.0
-  max_epochs: 50
+  max_epochs: 2
   # scheduler
   lr_scheduler_mode: "cosine"
   min_lr_ratio: 1.0e-1
@@ -43,7 +43,6 @@ optim:
   save_top_k: 1
 logging:
   logging_prefix: "Cuboid_IMS"
-  first_version_num: 1
   monitor_lr: true
   monitor_device: false
   track_grad_norm: -1
@@ -64,8 +63,8 @@ trainer:
   precision: 32
   accelerator: gpu
 model:
-  in_len: 12
-  out_len: 8
+  in_len: 13
+  out_len: 12
   base_units: 128
   block_units: null
   scale_alpha: 1.0

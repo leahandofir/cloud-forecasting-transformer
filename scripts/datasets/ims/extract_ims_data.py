@@ -152,7 +152,7 @@ class IMSH5():
         file.create_dataset(self.img_type, data=self._events)
         file.close()
         # save event_id to CATALOG
-        event = self.catalog[self.catalog["event_id"] == event_id]
+        event = self.catalog[self.catalog["id"] == event_id]
         event.to_csv(str(self.catalog_file_path), mode='a', index=False, header=False)
 
     def _load_data(self):

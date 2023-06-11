@@ -3,6 +3,7 @@ from pytorch_lightning import seed_everything
 from pytorch_lightning import loggers as pl_loggers
 import logging
 import wandb
+import warnings
 
 from shutil import copyfile
 import numpy as np
@@ -16,9 +17,11 @@ from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR
 from torch.nn import functional as F
 import torchmetrics
 
+from src.earthformer.utils.checkpoint import pl_ckpt_to_pytorch_state_dict
 from src.earthformer.datasets.ims.ims_datamodule import IMSLightningDataModule
 from src.earthformer.cuboid_transformer.cuboid_transformer import CuboidTransformerModel
 from src.earthformer.visualization.ims.ims_visualize import IMSVisualize
+from src.earthformer.config import cfg
 
 from src.earthformer.utils.optim import SequentialLR, warmup_lambda
 
@@ -28,6 +31,8 @@ import os
 import argparse
 
 FIRST_VERSION_NUM = 44
+pretrained_checkpoints_dir = cfg.pretrained_checkpoints_dir
+
 
 class CuboidIMSModule(pl.LightningModule):
 
@@ -68,10 +73,10 @@ class CuboidIMSModule(pl.LightningModule):
             logging_dir = os.path.join(os.path.dirname(__file__), "logging")
         self.logging_dir = logging_dir
         os.makedirs(self.logging_dir, exist_ok=True)
-        
+
         self.our_logs_dir = os.path.join(self.logging_dir, "our_logs")
         os.makedirs(self.our_logs_dir, exist_ok=True)
-                
+
         # add a new directory for the curr version 
         max_version_num = FIRST_VERSION_NUM
         for d in os.listdir(self.our_logs_dir):
@@ -414,12 +419,14 @@ def get_parser():
     parser.add_argument('--logging-dir', default=None, type=str)
     parser.add_argument('--gpus', default=1, type=int)
     parser.add_argument('--cfg', default=None, type=str)
+    parser.add_argument('--ckpt-path', default=None, type=str)
+    parser.add_argument('--pretrained', default=False, type=bool)
+    parser.add_argument('--fine-tune', default=False, type=bool)
+    parser.add_argument('--state-dict-file-name', default=None, type=str)
+    # TODO: add help to the arguments!
     # TODO: return to these arguments when they will be relevant
     # parser.add_argument('--test', action='store_true')
-    # parser.add_argument('--pretrained', action='store_true',
-    #                     help='Load pretrained checkpoints for test.')
-    # parser.add_argument('--ckpt-name', default=None, type=str,
-    #                     help='The model checkpoint trained on IMS.')
+
     return parser
 
 
@@ -434,18 +441,43 @@ def main():
     # TODO: test from a pretrained checkpoint like sevir did
 
     # model
-    l_model = CuboidIMSModule(logging_dir=args.logging_dir,
-                              cfg_file_path=args.cfg)
+    l_module = CuboidIMSModule(logging_dir=args.logging_dir,
+                               cfg_file_path=args.cfg)
     # data
-    dm = l_model.dm
+    dm = l_module.dm
 
     # seed
-    seed_everything(seed=l_model.hparams.optim.seed, workers=True)
+    seed_everything(seed=l_module.hparams.optim.seed, workers=True)
 
-    # train model
-    trainer_kwargs = l_model.get_trainer_kwargs(args.gpus)
+    # set trainer
+    trainer_kwargs = l_module.get_trainer_kwargs(args.gpus)
     trainer = pl.Trainer(**trainer_kwargs)
-    trainer.fit(model=l_model, datamodule=dm)
+
+    if args.pretrained or args.fine_tune:
+        state_dict_path = os.path.join(pretrained_checkpoints_dir, args.state_dict_file_name)
+        if not os.path.exists(state_dict_path):
+            warnings.warn(f"state dict {state_dict_path} not exists!")
+
+        state_dict = torch.load(state_dict_path)
+        l_module.torch_nn_module.load_state_dict(state_dict=state_dict)
+        if args.fine_tune:
+            trainer.fit(model=l_module,
+                        datamodule=dm)
+        else:
+            trainer.test(model=l_module,
+                         datamodule=dm)
+
+    ckpt_path = None
+    if args.ckpt_path is not None:
+        if not os.path.exists(args.ckpt_path):
+            warnings.warn(f"ckpt {args.ckpt_path} not exists! Start training from epoch 0.")
+        else:
+            print(f"Using checkpoint {args.ckpt_path}.")
+            ckpt_path = args.ckpt_path
+
+    trainer.fit(model=l_module,
+                datamodule=dm,
+                ckpt_path=ckpt_path)
 
 
 if __name__ == "__main__":
