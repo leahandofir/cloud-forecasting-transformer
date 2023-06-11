@@ -8,8 +8,9 @@
 #SBATCH --time=48:00:00
 
 module load anaconda3
-conda create --name extract --file requirements.txt
 
-python extract_ims_data.py
+source activate leahandofir
+
+/ims_home/orenp/.conda/envs/leahandofir/bin/python -u extract_ims_data.py > extract_prints_%j.txt
 
 
