@@ -145,14 +145,15 @@ class IMSH5():
         if self.verbose:
             print(f"saved {self.h5_file_name}")
 
-    def _save_data(self):
-        # save to h5 file
+    def _save_data(self, event_id):
+        # save all data to h5 file
         file = h5py.File(self.file_path, "w")
         file.create_dataset('id', data=self._ids)
         file.create_dataset(self.img_type, data=self._events)
         file.close()
-        # save to CATALOG
-        self.catalog.to_csv(str(self.catalog_file_path), mode='a', index=False, header=False)
+        # save event_id to CATALOG
+        event = self.catalog[self.catalog["event_id"] == event_id]
+        event.to_csv(str(self.catalog_file_path), mode='a', index=False, header=False)
 
     def _load_data(self):
         if self.sample_mode == 'sequent':
@@ -234,7 +235,7 @@ class IMSH5():
              'time_utc': start_event_time,
              'img_type': self.img_type, 'min_delta': self.time_delta.seconds / 60}, ignore_index=True)
 
-        self._save_data()  # save all to disk
+        self._save_data(event_id)  # save all to disk
 
         self._index += 1
 
