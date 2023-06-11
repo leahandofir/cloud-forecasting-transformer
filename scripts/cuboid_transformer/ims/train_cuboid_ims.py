@@ -436,7 +436,7 @@ def main():
     parser = get_parser()
     args = parser.parse_args()
 
-    # TODO: start from a saved checkpoint with l_model.load_from_checkpoint(PATH)
+    # TODO: start from a saved checkpoint with l_model.load_from_checkpoint(PATH), do we need to save the state_dict?!
     # TODO: config optimizer
     # TODO: test from a pretrained checkpoint like sevir did
 
