@@ -27,6 +27,7 @@ from omegaconf import OmegaConf
 import os
 import argparse
 
+FIRST_VERSION_NUM = 44
 
 class CuboidIMSModule(pl.LightningModule):
 
@@ -72,13 +73,14 @@ class CuboidIMSModule(pl.LightningModule):
         os.makedirs(self.our_logs_dir, exist_ok=True)
                 
         # add a new directory for the curr version 
-        max_version_num = self.hparams.logging.first_version_num
-        for f in os.listdir(self.our_logs):
-            if os.path.isdir(f):
-                if (f.split("_")[-1]).isnumeric():
-                    max_version_num = max(max_version_num, int(f.split("_")[-1]))
+        max_version_num = FIRST_VERSION_NUM
+        for d in os.listdir(self.our_logs_dir):
+            if os.path.isdir(os.path.join(self.our_logs_dir, d)):
+                if (d.split("_")[-1]).isnumeric():
+                    max_version_num = max(max_version_num, int(d.split("_")[-1]))
 
-        self.curr_version_dir = os.path.join(self.our_logs_dir, str(max_version_num))
+        self.curr_version_num = max_version_num + 1
+        self.curr_version_dir = os.path.join(self.our_logs_dir, f"version_{self.curr_version_num}")
         os.makedirs(self.curr_version_dir, exist_ok=True)
 
         self.scores_dir = os.path.join(self.curr_version_dir, "scores")
@@ -199,19 +201,23 @@ class CuboidIMSModule(pl.LightningModule):
         Then, go to chrome and connect http://http://192.168.0.177/:6006/.
         """
         if self.hparams.logging.use_tensorbaord:
-            loggers.append(pl_loggers.TensorBoardLogger(save_dir=self.logging_dir))
+            loggers.append(pl_loggers.TensorBoardLogger(save_dir=self.logging_dir,
+                                                        version=self.curr_version_num))
 
         """
         CSVLogger
         """
         if self.hparams.logging.use_csv:
-            loggers.append(pl_loggers.CSVLogger(save_dir=self.logging_dir))
+            loggers.append(pl_loggers.CSVLogger(save_dir=self.logging_dir,
+                                                version=self.curr_version_num))
 
         """
         WandbLogger
         """
         if self.hparams.logging.use_wandb:
-            loggers.append(pl_loggers.WandbLogger(project="cloud-forecasting-transformer", save_dir=self.logging_dir))
+            loggers.append(pl_loggers.WandbLogger(project="cloud-forecasting-transformer",
+                                                  save_dir=self.logging_dir,
+                                                  name=f"version_{self.curr_version_num}"))
 
         trainer_kwargs = dict(
             devices=gpus,

@@ -17,10 +17,6 @@ CFG_FILE_PATH = "/ims_projects/Research/Oren/Lia_Ofir/ims_data/extract_cfg.json"
 
 
 class IMSH5():
-    """
-    represents an h5 file containing IMS data.
-    """
-
     def __init__(self, img_type,
                  time_delta,
                  start_date, end_date,
@@ -35,6 +31,7 @@ class IMSH5():
                  channels='grayscale',
                  verbose=True,
                  catalog_headers=None,
+                 catalog_file_path=None,
                  h5_files_directory=None,
                  h5_file_name_format=None,
                  eumetsat_date_path=None,
@@ -104,6 +101,8 @@ class IMSH5():
             self.catalog_headers = CATALOG_HEADERS
         else:
             self.catalog_headers = catalog_headers
+        assert catalog_file_path is not None
+        self.catalog_file_path = catalog_file_path
         if eumetsat_date_path is None:
             self.eumetsat_date_path = EUMETSAT_DATE_PATH
         else:
@@ -116,11 +115,15 @@ class IMSH5():
         # setup
         self.verbose = verbose
         self.catalog = pd.DataFrame(columns=self.catalog_headers)
-        self._open_file()
+        self._set_data_dir()
 
         self._index = 0
         self._events = []
         self._ids = []
+
+    """
+    represents an h5 file containing IMS data.
+    """
 
     def _h5_file_name(self, h5_file_name_format):
         h5_start_day = self.start_date.strftime("%m%d")
@@ -129,22 +132,27 @@ class IMSH5():
             img_type=self.img_type, year=self.year,
             start_day=h5_start_day, end_day=h5_end_day)
 
-    def _open_file(self):
+    def _set_data_dir(self):
         # create directory for h5 file
         out_dir = Path(self.h5_files_directory)
         if not out_dir.exists():
             out_dir.mkdir(parents=True)
-        # open h5 file for writing
-        self.file = h5py.File(os.path.join(self.h5_files_directory, self.h5_file_name), "w")
+        # create h5 file path
+        self.file_path = os.path.join(self.h5_files_directory, self.h5_file_name)
 
     def extract_all(self):
         self._load_data()
-        self._save_data()
         if self.verbose:
             print(f"saved {self.h5_file_name}")
 
     def _save_data(self):
-        self.file.close()
+        # save to h5 file
+        file = h5py.File(self.file_path, "w")
+        file.create_dataset('id', data=self._ids)
+        file.create_dataset(self.img_type, data=self._events)
+        file.close()
+        # save to CATALOG
+        self.catalog.to_csv(str(self.catalog_file_path), mode='a', index=False, header=False)
 
     def _load_data(self):
         if self.sample_mode == 'sequent':
@@ -158,10 +166,6 @@ class IMSH5():
         if self.sample_mode == 'random':
             # TODO: write this
             pass
-
-        # insert data to h5 file
-        self.file.create_dataset('id', data=self._ids)
-        self.file.create_dataset(self.img_type, data=self._events)
 
     def _discover_events(self, date):
         year = date.strftime("%Y")
@@ -229,6 +233,8 @@ class IMSH5():
             {'id': event_id, 'file_name': self.h5_file_name, 'file_index': self._index,
              'time_utc': start_event_time,
              'img_type': self.img_type, 'min_delta': self.time_delta.seconds / 60}, ignore_index=True)
+
+        self._save_data()  # save all to disk
 
         self._index += 1
 
@@ -307,13 +313,13 @@ def main():
                         slice_y=slice_y,
                         channels=channels,
                         catalog_headers=catalog_headers,
+                        catalog_file_path=catalog_file_path,
                         h5_files_directory=h5_files_directory,
                         h5_file_name_format=h5_file_name_format,
                         eumetsat_date_path=eumetsat_date_path,
                         eumetsat_frame_name=eumetsat_frame_name)
 
         h5_file.extract_all()
-        catalog.to_csv(str(catalog_file_path), mode='a', index=False, header=False)  # adds to existing CATALOG file
 
 
 if __name__ == '__main__':
