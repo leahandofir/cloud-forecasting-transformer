@@ -13,7 +13,7 @@ IMG_SHAPES = {'png': (600, 600)}
 CATALOG_HEADERS = ['id', 'file_name', 'file_index', 'img_type', 'time_utc', 'min_delta']
 EUMETSAT_DATE_PATH = "/ims_archive/Operational/MSG/images/HRIT_RSS/{img_type}/{year}/{month}/{day}/{year}{month}{day}{hour}{minute}.{img_format}"
 EUMETSAT_FRAME_NAME = "{year}{month}{day}{hour}{minute}.{img_format}"
-CFG_FILE_PATH = "/ims_projects/Research/Oren/Lia_Ofir/ims_data/extract_cfg.json"
+CFG_FILE_PATH = "extract_cfg_ir_OND_JFM.json"
 
 
 class IMSH5():

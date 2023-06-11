@@ -4,14 +4,14 @@
   "eumetsat_date_path": "/ims_archive/Operational/MSG/images/HRIT_RSS/{img_type}/{year}/{month}/{day}",
   "eumetsat_frame_name": "{year}{month}{day}{hour}{minute}.{img_format}",
   "h5_file_name_format": "IMS_{img_type}_{year}_{start_day}_{end_day}.h5",
-  "h5_files_directory": "data/{img_type}/{year}",
+  "h5_files_directory": "data_OND_JFM/{img_type}/{year}",
   "event_length": 72,
   "h5_files": [
     {
       "img_type": "MIDDLE_EAST_IR",
       "time_delta": 5,
-      "start_date": [2023, 12, 1],
-      "end_date": [2023, 2, 31],
+      "start_date": [2023, 1, 1],
+      "end_date": [2023, 3, 31],
       "sunrise": [0, 0],
       "sunset": [23, 55],
       "sample_mode": "sequent",
@@ -19,13 +19,14 @@
       "shape": [600, 600],
       "slice_x": [],
       "slice_y": [],
-      "channels": "grayscale"
+      "channels": "grayscale",
+      "frequent_writes": true
     },
     {
       "img_type": "MIDDLE_EAST_IR",
       "time_delta": 5,
-      "start_date": [2022, 12, 1],
-      "end_date": [2022, 2, 31],
+      "start_date": [2022, 1, 1],
+      "end_date": [2022, 3, 31],
       "sunrise": [0, 0],
       "sunset": [23, 55],
       "sample_mode": "sequent",
@@ -33,13 +34,14 @@
       "shape": [600, 600],
       "slice_x": [],
       "slice_y": [],
-      "channels": "grayscale"
+      "channels": "grayscale",
+      "frequent_writes": true
     },
     {
       "img_type": "MIDDLE_EAST_IR",
       "time_delta": 5,
-      "start_date": [2021, 12, 1],
-      "end_date": [2021, 2, 31],
+      "start_date": [2021, 1, 1],
+      "end_date": [2021, 3, 31],
       "sunrise": [0, 0],
       "sunset": [23, 55],
       "sample_mode": "sequent",
@@ -47,13 +49,14 @@
       "shape": [600, 600],
       "slice_x": [],
       "slice_y": [],
-      "channels": "grayscale"
+      "channels": "grayscale",
+      "frequent_writes": true
     },
     {
       "img_type": "MIDDLE_EAST_IR",
       "time_delta": 5,
-      "start_date": [2020, 12, 1],
-      "end_date": [2020, 2, 31],
+      "start_date": [2020, 1, 1],
+      "end_date": [2020, 3, 31],
       "sunrise": [0, 0],
       "sunset": [23, 55],
       "sample_mode": "sequent",
@@ -61,13 +64,14 @@
       "shape": [600, 600],
       "slice_x": [],
       "slice_y": [],
-      "channels": "grayscale"
+      "channels": "grayscale",
+      "frequent_writes": true
     },
     {
       "img_type": "MIDDLE_EAST_IR",
       "time_delta": 5,
-      "start_date": [2023, 9, 1],
-      "end_date": [2023, 11, 31],
+      "start_date": [2022, 10, 1],
+      "end_date": [2022, 12, 31],
       "sunrise": [0, 0],
       "sunset": [23, 55],
       "sample_mode": "sequent",
@@ -75,13 +79,14 @@
       "shape": [600, 600],
       "slice_x": [],
       "slice_y": [],
-      "channels": "grayscale"
+      "channels": "grayscale",
+      "frequent_writes": true
     },
     {
       "img_type": "MIDDLE_EAST_IR",
       "time_delta": 5,
-      "start_date": [2022, 9, 1],
-      "end_date": [2022, 11, 31],
+      "start_date": [2021, 10, 1],
+      "end_date": [2021, 12, 31],
       "sunrise": [0, 0],
       "sunset": [23, 55],
       "sample_mode": "sequent",
@@ -89,13 +94,14 @@
       "shape": [600, 600],
       "slice_x": [],
       "slice_y": [],
-      "channels": "grayscale"
+      "channels": "grayscale",
+      "frequent_writes": true
     },
     {
       "img_type": "MIDDLE_EAST_IR",
       "time_delta": 5,
-      "start_date": [2021, 9, 1],
-      "end_date": [2021, 11, 31],
+      "start_date": [2020, 10, 1],
+      "end_date": [2020, 12, 31],
       "sunrise": [0, 0],
       "sunset": [23, 55],
       "sample_mode": "sequent",
@@ -103,21 +109,8 @@
       "shape": [600, 600],
       "slice_x": [],
       "slice_y": [],
-      "channels": "grayscale"
-    },
-    {
-      "img_type": "MIDDLE_EAST_IR",
-      "time_delta": 5,
-      "start_date": [2020, 9, 1],
-      "end_date": [2020, 11, 31],
-      "sunrise": [0, 0],
-      "sunset": [23, 55],
-      "sample_mode": "sequent",
-      "img_format": "png",
-      "shape": [600, 600],
-      "slice_x": [],
-      "slice_y": [],
-      "channels": "grayscale"
+      "channels": "grayscale",
+      "frequent_writes": true
     }
   ]
 }
