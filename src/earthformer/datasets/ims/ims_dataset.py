@@ -1,5 +1,4 @@
 # TODO: maybe it is more efficient to read subsequent samples.
-# TODO: allow to load sequences with more then 5 min apart
 # TODO: verify that we took every important thing from SEVIR code
 
 import torch
@@ -14,13 +13,11 @@ from src.earthformer.config import cfg
 
 # IMS dataset constants
 IMS_IMG_TYPES = {"MIDDLE_EAST_VIS", "MIDDLE_EAST_DAY_CLOUDS", "MIDDLE_EAST_COLORED", "MIDDLE_EAST_IR"}
-IMS_RAW_DTYPES = {'MIDDLE_EAST_VIS': np.uint8}  # currently only VIS raw-type is known
-IMS_DATA_SHAPE = {'MIDDLE_EAST_VIS': (600, 600, 4)}
-PREPROCESS_SCALE_IMS = {'MIDDLE_EAST_VIS': 1 / 255}
-PREPROCESS_OFFSET_IMS = {'MIDDLE_EAST_VIS': 0}
 VALID_LAYOUTS = {'THWC'}
+VALID_CHANNELS = (1, 3, 4)
 
 # IMS dataset directory
+# the structure of the data directory must be as follows: img_type -> year -> h5 file
 IMS_ROOT_DIR = os.path.join(cfg.datasets_dir, "ims")
 IMS_CATALOG = os.path.join(IMS_ROOT_DIR, "CATALOG.csv")
 IMS_DATA_DIR = os.path.join(IMS_ROOT_DIR, "data")
@@ -33,12 +30,14 @@ class IMSDataset(Dataset):
                  raw_seq_len: int = 169,
                  stride: int = 12,
                  layout: str = 'THWC',
+                 raw_img_shape: Union[tuple, list] = (600, 600, 1),
                  ims_catalog: Union[str, pd.DataFrame] = None,
                  ims_data_dir: str = None,
                  start_date: datetime.datetime = None,
                  end_date: datetime.datetime = None,
                  time_delta: int = 5,
-                 shuffle: bool = False,
+                 raw_time_delta: int = 5,
+                 shuffle: bool = False,  # gives randomness resolution to the event level (between events)
                  shuffle_seed: int = 1,
                  grayscale: bool = False,
                  left: int = 0,
@@ -67,11 +66,9 @@ class IMSDataset(Dataset):
         self.img_type = img_type
         self.start_date = start_date
         self.end_date = end_date
-        if self.start_date is not None:
-            self.catalog = self.catalog[self.catalog.time_utc > self.start_date]
-        if self.end_date is not None:
-            self.catalog = self.catalog[self.catalog.time_utc <= self.end_date]
+        assert time_delta % raw_time_delta == 0
         self.time_delta = time_delta
+        self.raw_time_delta = raw_time_delta
         if layout not in VALID_LAYOUTS:
             raise ValueError(f'Invalid layout = {layout}! Must be one of {VALID_LAYOUTS}.')
         self.layout = layout
@@ -83,7 +80,9 @@ class IMSDataset(Dataset):
         self.shuffle = shuffle
         self.shuffle_seed = int(shuffle_seed)
 
-        max_width = IMS_DATA_SHAPE[self.img_type][0]
+        assert len(raw_img_shape) == 3  # we assume the images are in HWC dimensions
+        self.raw_img_shape = raw_img_shape
+        max_width = raw_img_shape[0]
         assert 0 <= left <= max_width
         if width is not None:
             assert 0 <= width <= max_width
@@ -91,7 +90,7 @@ class IMSDataset(Dataset):
         else:
             self.width = max_width
 
-        max_height = IMS_DATA_SHAPE[self.img_type][1]
+        max_height = raw_img_shape[1]
         assert 0 <= top <= max_height
         if height is not None:
             assert 0 <= height <= max_height
@@ -99,7 +98,11 @@ class IMSDataset(Dataset):
         else:
             self.height = max_height
 
-        self.img_shape = (width, height, 1 if grayscale else IMS_DATA_SHAPE[self.img_type][2])
+        channels = raw_img_shape[2]
+        assert channels in VALID_CHANNELS
+        self.channels = channels
+
+        self.img_shape = (width, height, 1 if grayscale else self.channels)
 
         self.preprocess = IMSPreprocess(grayscale=grayscale, crop=dict(left=left, top=top, width=width, height=height),
                                         scale=scale)
@@ -110,27 +113,46 @@ class IMSDataset(Dataset):
 
         self._load_events()
         self._open_files()
-    
+
     def _load_events(self):
-        self._events = self.catalog[self.catalog.img_type == self.img_type]
+        self._events = self.catalog
+        # filter catalog file to contain only the relevant dates and img_type
+
+        if self.start_date is not None:
+            self._events = self._events[self._events.time_utc >= self.start_date]
+        if self.end_date is not None:
+            self._events = self._events[self._events.time_utc <= self.end_date]
+
+        self._events = self._events[self._events.img_type == self.img_type]
+
         if self.shuffle:
             self._events = self._events.sample(frac=1, random_state=self.shuffle_seed)
 
     def _open_files(self):
+        # open file descriptors for all the relevant h5 files containing the data
         file_names = self._events['file_name'].unique()
         for f in file_names:
             events = self._events[self._events['file_name'] == f]
             img_type = events.iloc[0]['img_type']
             year = str(events.iloc[0]['time_utc'].year)
-            self._hdf_files[f] = h5py.File(os.path.join(self.ims_data_dir, img_type, year,  f), 'r')
+            self._hdf_files[f] = h5py.File(os.path.join(self.ims_data_dir, img_type, year, f), 'r')
 
     def _idx_sample(self, index):
         event_idx = index // self.num_seq_per_event
         seq_idx = index % self.num_seq_per_event
         event = self._events.iloc[event_idx]
         raw_seq = self._hdf_files[event['file_name']][self.img_type][event['file_index']]
-        seq = raw_seq[slice(seq_idx * self.stride, seq_idx * self.stride + self.seq_len), :, :, :]  # TODO: allow layout different then THWC
-        return seq
+        raw_frames_times = [int(round((event['time_utc'] + datetime.timedelta(minutes=self.raw_time_delta) * i).timestamp()))
+                            for i in range(len(raw_seq))]
+
+        step_idx = self.time_delta // self.raw_time_delta
+        start_idx = seq_idx * self.stride
+        stop_idx = seq_idx * self.stride + self.real_sequence_len
+        slice_sample = slice(start_idx, stop_idx, step_idx)
+
+        seq = raw_seq[slice_sample, :, :, :] # TODO: allow layout different then THWC
+        frames_times = raw_frames_times[slice_sample]
+        return frames_times, seq
 
     def close(self):
         for f in self._hdf_files:
@@ -139,7 +161,7 @@ class IMSDataset(Dataset):
 
     @property
     def num_seq_per_event(self):
-        return 1 + (self.raw_seq_len - self.seq_len) // self.stride
+        return 1 + (self.raw_seq_len - self.real_sequence_len) // self.stride
 
     @property
     def total_num_event(self):
@@ -149,18 +171,21 @@ class IMSDataset(Dataset):
     def total_num_seq(self):
         return int(self.num_seq_per_event * self.total_num_event)
 
+    @property
+    def real_sequence_len(self):
+        return (self.seq_len - 1) * (self.time_delta // self.raw_time_delta) + 1  # counting the frames we skip
+
     def __len__(self):
         return self.total_num_seq
 
     def __getitem__(self, index):
-        sample = self._idx_sample(index)
+        times, sample = self._idx_sample(index)
         if self.preprocess:
             sample = self.preprocess(sample)
-        return sample
+        return times, sample
 
 
 class IMSPreprocess:
-    # TODO: change the output data type
     def __init__(self, grayscale=False, crop={}, scale=True, data_type=torch.float32):
         # build the transformation function according to the parameters
         # convert (H x W x C) to a Tensor (C x H x W)
@@ -171,9 +196,9 @@ class IMSPreprocess:
             relevant_transforms.append(transforms.Lambda(lambda t: t / 255))
 
         # convert to grayscale (1 x H x W) if necessary
-        if grayscale: # TODO: when the image is already in grayscale this creates bug
-            relevant_transforms.append(transforms.Lambda(lambda x: x[:3, :, :]))
-            relevant_transforms.append(transforms.Lambda(lambda x: transforms.Grayscale(x) if x.shape[0] > 1 else x))
+        if grayscale:
+            relevant_transforms.append(
+                transforms.Lambda(lambda x: transforms.Grayscale(x[:3, :, :]) if x.shape[0] > 1 else x))
 
         # crop image if necessary
         if len(crop.keys()) > 0:
@@ -194,8 +219,5 @@ class IMSPreprocess:
     def preprocess_seq(self, seq):
         return torch.stack([self.preprocess_frame(frame) for frame in seq])
 
-    def __call__(self, x):
-        if x.ndim == 4:  # this is a seq
-            return self.preprocess_seq(x)
-        else:  # this is a frame - TODO: remove this later (now kept for debugging)
-            return self.preprocess_frame(x)
+    def __call__(self, x):  # x is a sequence with dimensions THWC
+        return self.preprocess_seq(x)

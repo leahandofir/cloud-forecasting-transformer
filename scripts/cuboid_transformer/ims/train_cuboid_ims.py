@@ -109,7 +109,9 @@ class CuboidIMSModule(pl.LightningModule):
             copyfile(self.cfg_file_path, cfg_file_target_path)
 
     def _get_x_y_from_batch(self, batch):
-        # batch.shape is (N, T, H, W, C)
+        # TODO: fix batching, look at collate_fn here https://pytorch.org/docs/stable/data.html
+        # batch.shape is (times, sample) where times shape is S (list of integer timestamps)
+        # and sample shape is (T, H, W, C)
         return batch[:, :self.hparams.model.in_len, :, :, :], \
                batch[:, self.hparams.model.in_len:(self.hparams.model.in_len + self.hparams.model.out_len), :, :, :]
 
@@ -318,7 +320,9 @@ class CuboidIMSModule(pl.LightningModule):
                                     seq_len=self.hparams.dataset.seq_len,
                                     stride=self.hparams.dataset.stride,
                                     time_delta=self.hparams.dataset.time_delta,
+                                    raw_time_delta=self.hparams.dataset.raw_time_delta,
                                     layout=self.hparams.dataset.layout,
+                                    raw_img_shape=self.hparams.dataset.raw_img_shape,
                                     ims_catalog=self.hparams.dataset.ims_catalog,
                                     ims_data_dir=self.hparams.dataset.ims_data_dir,
                                     grayscale=self.hparams.dataset.preprocess.grayscale,

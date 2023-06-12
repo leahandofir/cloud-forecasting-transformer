@@ -5,6 +5,7 @@ dataset:
   raw_seq_len: 169
   stride: 12
   layout: "THWC"
+  raw_img_shape: [600, 600, 1]
   batch_layout: "NTHWC"
   ims_catalog: null
   ims_data_dir: null
@@ -12,7 +13,8 @@ dataset:
   train_val_split_date: [2023, 2, 1]
   train_test_split_date: [2023, 3, 1]
   end_date: [2023, 4, 1]
-  time_delta: 5
+  time_delta: 30
+  raw_time_delta: 5
   preprocess:
     grayscale: true
     crop:
