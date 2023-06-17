@@ -83,26 +83,25 @@ class IMSDataset(Dataset):
         assert len(raw_img_shape) == 3  # we assume the images are in HWC dimensions
         self.raw_img_shape = raw_img_shape
         max_width = raw_img_shape[0]
-        assert 0 <= left <= max_width
+        assert 0 <= left
         if width is not None:
-            assert 0 <= width <= max_width
-            self.width = width
+            assert 0 <= left + width <= max_width
         else:
-            self.width = max_width
+            width = max_width
 
         max_height = raw_img_shape[1]
-        assert 0 <= top <= max_height
+        assert 0 <= top
         if height is not None:
-            assert 0 <= height <= max_height
-            self.height = height
+            assert 0 <= top + height <= max_height
         else:
-            self.height = max_height
+            height = max_height
 
         channels = raw_img_shape[2]
         assert channels in VALID_CHANNELS
         self.channels = channels
 
         self.img_shape = (width, height, 1 if grayscale else self.channels)
+        self.shift = (left, top)
 
         self.preprocess = IMSPreprocess(grayscale=grayscale, crop=dict(left=left, top=top, width=width, height=height),
                                         scale=scale)
@@ -142,17 +141,17 @@ class IMSDataset(Dataset):
         seq_idx = index % self.num_seq_per_event
         event = self._events.iloc[event_idx]
         raw_seq = self._hdf_files[event['file_name']][self.img_type][event['file_index']]
-        raw_frames_times = [int(round((event['time_utc'] + datetime.timedelta(minutes=self.raw_time_delta) * i).timestamp()))
-                            for i in range(len(raw_seq))]
+        raw_seq_start_time = event['time_utc']
 
         step_idx = self.time_delta // self.raw_time_delta
         start_idx = seq_idx * self.stride
-        stop_idx = seq_idx * self.stride + self.real_sequence_len
+        stop_idx = start_idx + self.real_sequence_len
         slice_sample = slice(start_idx, stop_idx, step_idx)
 
+        seq_start_time = raw_seq_start_time + datetime.timedelta(minutes=self.raw_time_delta) * start_idx
+
         seq = raw_seq[slice_sample, :, :, :] # TODO: allow layout different then THWC
-        frames_times = raw_frames_times[slice_sample]
-        return frames_times, seq
+        return seq_start_time, seq
 
     def close(self):
         for f in self._hdf_files:
@@ -179,10 +178,11 @@ class IMSDataset(Dataset):
         return self.total_num_seq
 
     def __getitem__(self, index):
-        times, sample = self._idx_sample(index)
+        start_time, sample = self._idx_sample(index)
         if self.preprocess:
             sample = self.preprocess(sample)
-        return times, sample
+
+        return datetime.datetime.timestamp(start_time), sample
 
 
 class IMSPreprocess:

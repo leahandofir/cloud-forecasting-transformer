@@ -25,7 +25,7 @@ from src.earthformer.config import cfg
 
 from src.earthformer.utils.optim import SequentialLR, warmup_lambda
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from omegaconf import OmegaConf
 import os
 import argparse
@@ -109,24 +109,26 @@ class CuboidIMSModule(pl.LightningModule):
             copyfile(self.cfg_file_path, cfg_file_target_path)
 
     def _get_x_y_from_batch(self, batch):
-        # TODO: fix batching, look at collate_fn here https://pytorch.org/docs/stable/data.html
         # batch.shape is (times, sample) where times shape is S (list of integer timestamps)
         # and sample shape is (T, H, W, C)
-        return batch[:, :self.hparams.model.in_len, :, :, :], \
-               batch[:, self.hparams.model.in_len:(self.hparams.model.in_len + self.hparams.model.out_len), :, :, :]
+        start_time, sample = batch
+
+        return start_time, sample[:, :self.hparams.model.in_len, :, :, :], \
+               sample[:, self.hparams.model.in_len:(self.hparams.model.in_len + self.hparams.model.out_len), :, :, :]
 
     def forward(self, x):
         return self.torch_nn_module(x)
 
     def training_step(self, batch, batch_idx):
-        x, y = self._get_x_y_from_batch(batch)
+        start_time, x, y = self._get_x_y_from_batch(batch)
         y_hat = self(x)
         loss = self.train_loss(y_hat, y)
 
         data_idx = int(batch_idx * self.hparams.optim.micro_batch_size)
 
         # save our visualization
-        self.save_visualization(in_seq=x[0],
+        self.save_visualization(seq_start_time=start_time[0],
+                                in_seq=x[0],
                                 target_seq=y[0],
                                 pred_seq_list=y_hat[0],
                                 data_idx=data_idx,
@@ -249,7 +251,7 @@ class CuboidIMSModule(pl.LightningModule):
         return trainer_kwargs
 
     def validation_step(self, batch, batch_idx):
-        x, y = self._get_x_y_from_batch(batch)
+        start_time, x, y = self._get_x_y_from_batch(batch)
         y_hat = self(x)
 
         # TODO: verify we know what it means, seems like the first in any microbatch
@@ -257,7 +259,8 @@ class CuboidIMSModule(pl.LightningModule):
             batch_idx * self.hparams.optim.micro_batch_size)
 
         # save our visualization
-        self.save_visualization(in_seq=x[0],
+        self.save_visualization(seq_start_time=start_time[0],
+                                in_seq=x[0],
                                 target_seq=y[0],
                                 pred_seq_list=y_hat[0],
                                 data_idx=data_idx,
@@ -271,9 +274,13 @@ class CuboidIMSModule(pl.LightningModule):
         self.log("val_loss_epoch", epoch_loss, sync_dist=True, on_epoch=True)
         self.validation_loss.reset()
 
+    def _torch_to_numpy(self, e):
+        return e.detach().float().cpu().numpy()
+
     def save_visualization(
             self,
             data_idx: int,
+            seq_start_time: torch.tensor, # timestamp
             in_seq: torch.Tensor,
             target_seq: torch.Tensor,
             pred_seq_list: torch.Tensor,
@@ -288,9 +295,11 @@ class CuboidIMSModule(pl.LightningModule):
         else:
             raise ValueError(f"Wrong mode {mode}! Must be in ['train', 'val', 'test'].")
 
-        in_seq = in_seq.detach().float().cpu().numpy()
-        target_seq = target_seq.detach().float().cpu().numpy()
-        pred_seq_list = pred_seq_list.detach().float().cpu().numpy()
+        in_seq = self._torch_to_numpy(in_seq)
+        target_seq = self._torch_to_numpy(target_seq)
+        pred_seq_list = self._torch_to_numpy(pred_seq_list)
+        start_time = datetime.fromtimestamp(seq_start_time.item())
+        time_delta = timedelta(minutes=self.hparams.dataset.time_delta)
 
         if data_idx in example_data_idx_list:
             self.visualize.save_example(save_prefix=f'{mode}_epoch_{self.current_epoch}_data_{data_idx}',
@@ -301,8 +310,8 @@ class CuboidIMSModule(pl.LightningModule):
                                         )
 
             if self.hparams.logging.use_wandb:
-                x_images = [wandb.Image(image) for image in in_seq]
-                y_images = [wandb.Image(image) for image in target_seq]
+                x_images = [wandb.Image(image, caption=start_time + t * time_delta) for t, image in enumerate(in_seq)]
+                y_images = [wandb.Image(image, caption=start_time + (t + self.hparams.model.in_len) * time_delta) for t, image in enumerate(target_seq)]
                 y_hat_images = [wandb.Image(image) for image in pred_seq_list]
 
                 wandb.log({f"{mode}": {"x": x_images, "y": y_images, "y_hat": y_hat_images}})
@@ -435,7 +444,7 @@ def get_parser():
 
 
 def main():
-    logging.getLogger("lightning").setLevel(logging.ERROR)  # suppress WARN massages in console
+    logging.getLogger("lightning.pytorch").setLevel(logging.ERROR)  # suppress WARN massages in console
 
     parser = get_parser()
     args = parser.parse_args()
@@ -443,6 +452,7 @@ def main():
     # TODO: start from a saved checkpoint with l_model.load_from_checkpoint(PATH), do we need to save the state_dict?!
     # TODO: config optimizer
     # TODO: test from a pretrained checkpoint like sevir did
+    # TODO: save args in logs!
 
     # model
     l_module = CuboidIMSModule(logging_dir=args.logging_dir,
@@ -471,17 +481,18 @@ def main():
             trainer.test(model=l_module,
                          datamodule=dm)
 
-    ckpt_path = None
-    if args.ckpt_path is not None:
-        if not os.path.exists(args.ckpt_path):
-            warnings.warn(f"ckpt {args.ckpt_path} not exists! Start training from epoch 0.")
-        else:
-            print(f"Using checkpoint {args.ckpt_path}.")
-            ckpt_path = args.ckpt_path
+    else:
+        ckpt_path = None
+        if args.ckpt_path is not None:
+            if not os.path.exists(args.ckpt_path):
+                warnings.warn(f"ckpt {args.ckpt_path} not exists! Start training from epoch 0.")
+            else:
+                print(f"Using checkpoint {args.ckpt_path}.")
+                ckpt_path = args.ckpt_path
 
-    trainer.fit(model=l_module,
-                datamodule=dm,
-                ckpt_path=ckpt_path)
+        trainer.fit(model=l_module,
+                    datamodule=dm,
+                    ckpt_path=ckpt_path)
 
 
 if __name__ == "__main__":
