@@ -13,7 +13,7 @@ dataset:
   train_val_split_date: [2023, 2, 1]
   train_test_split_date: [2023, 3, 1]
   end_date: [2023, 4, 1]
-  time_delta: 30
+  time_delta: 5
   raw_time_delta: 5
   preprocess:
     grayscale: true
@@ -32,7 +32,7 @@ optim:
   lr: 0.001
   wd: 0.0
   gradient_clip_val: 1.0
-  max_epochs: 4
+  max_epochs: 40
   # scheduler
   lr_scheduler_mode: "cosine"
   min_lr_ratio: 1.0e-1
@@ -64,6 +64,9 @@ trainer:
   log_step_ratio: 0.001
   precision: 32
   accelerator: gpu
+  fss:
+    threshold: 160
+    scale: 30
 model:
   in_len: 13
   out_len: 12

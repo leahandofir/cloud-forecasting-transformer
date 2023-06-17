@@ -27,6 +27,7 @@ from omegaconf import OmegaConf
 import os, sys
 import argparse
 import json
+from pysteps.verification.spatialscores import fss_init, fss_accum, fss_compute
 
 FIRST_VERSION_NUM = 44
 pretrained_checkpoints_dir = cfg.pretrained_checkpoints_dir
@@ -274,6 +275,9 @@ class CuboidIMSModule(pl.LightningModule):
         loss = self.validation_loss(y_hat, y)
         self.log('val_loss_step', loss, prog_bar=True, on_step=True, on_epoch=False)
 
+        fss_batch = self._calc_fss_batch(y, y_hat)
+        self.log('val_fss_step', fss_batch, on_step=True, on_epoch=False)
+
     def validation_epoch_end(self, outputs):
         epoch_loss = self.validation_loss.compute()
         self.log("val_loss_epoch", epoch_loss, sync_dist=True, on_epoch=True)
@@ -281,6 +285,24 @@ class CuboidIMSModule(pl.LightningModule):
 
     def _torch_to_numpy(self, e):
         return e.detach().float().cpu().numpy()
+
+    def _calc_fss_batch(self, y, y_hat):
+        '''
+        y and y_hat are from layout NTHWC.
+        calculates accumulated fss for the whole batch.
+        compares between every pair of ground truth frame and predicted frame for every sequence in the batch.
+        if there are more than one channel in the frame, every one of them is compared separately.
+        '''
+        pixel_scale = 255 if self.hparams.dataset.preprocess.scale else 1
+        fss = fss_init(self.hparams.trainer.fss.threshold, self.hparams.trainer.fss.scale)
+        for i in range(self.hparams.optim.micro_batch_size):
+            y_sample, y_hat_sample = self._torch_to_numpy(y[i]), self._torch_to_numpy(y_hat[i])
+            for j in range(self.hparams.model.out_len):
+                for c in range(self.dm.get_hwc()[2]):
+                    fss_accum(fss, y_sample[j, :, :, c] * pixel_scale, y_hat_sample[j, :, :, c] * pixel_scale)
+
+        return fss_compute(fss)
+
 
     def save_visualization(
             self,
