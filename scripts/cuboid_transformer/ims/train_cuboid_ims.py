@@ -1,34 +1,32 @@
 import pytorch_lightning as pl
 from pytorch_lightning import seed_everything
 from pytorch_lightning import loggers as pl_loggers
-import logging
-import wandb
-import warnings
-
-from shutil import copyfile
-import numpy as np
-
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor, DeviceStatsMonitor
-from src.earthformer.utils.apex_ddp import ApexDDPStrategy
 
 import torch
 from torch.optim import AdamW
 from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR
 from torch.nn import functional as F
 import torchmetrics
+from typing import Dict
 
-from src.earthformer.utils.checkpoint import pl_ckpt_to_pytorch_state_dict
 from src.earthformer.datasets.ims.ims_datamodule import IMSLightningDataModule
 from src.earthformer.cuboid_transformer.cuboid_transformer import CuboidTransformerModel
 from src.earthformer.visualization.ims.ims_visualize import IMSVisualize
 from src.earthformer.config import cfg
-
 from src.earthformer.utils.optim import SequentialLR, warmup_lambda
+from src.earthformer.utils.apex_ddp import ApexDDPStrategy
 
+import logging
+import wandb
+import warnings
+from shutil import copyfile
+import numpy as np
 from datetime import datetime, timedelta
 from omegaconf import OmegaConf
-import os
+import os, sys
 import argparse
+import json
 
 FIRST_VERSION_NUM = 44
 pretrained_checkpoints_dir = cfg.pretrained_checkpoints_dir
@@ -37,14 +35,16 @@ pretrained_checkpoints_dir = cfg.pretrained_checkpoints_dir
 class CuboidIMSModule(pl.LightningModule):
 
     def __init__(self,
-                 cfg_file_path: str = None,
+                 args: dict = None,
                  logging_dir: str = None):
         super(CuboidIMSModule, self).__init__()
 
-        if cfg_file_path is None:
+        self.args = args
+
+        if args is None or args["cfg"] is None:
             self.cfg_file_path = os.path.join(os.path.dirname(__file__), "cfg_ims.yaml")
         else:
-            self.cfg_file_path = cfg_file_path
+            self.cfg_file_path = args["cfg"]
 
         # save hyperparams
         train_cfg = OmegaConf.load(open(self.cfg_file_path, "r"))
@@ -107,6 +107,11 @@ class CuboidIMSModule(pl.LightningModule):
         if (not os.path.exists(cfg_file_target_path)) or \
                 (not os.path.samefile(self.cfg_file_path, cfg_file_target_path)):
             copyfile(self.cfg_file_path, cfg_file_target_path)
+
+        # save the command line args into json
+        args_file_target_path = os.path.join(self.curr_version_dir, "args.json")
+        with open(args_file_target_path, 'w') as f:
+            json.dump(self.args, f, indent=2)
 
     def _get_x_y_from_batch(self, batch):
         # batch.shape is (times, sample) where times shape is S (list of integer timestamps)
@@ -280,7 +285,7 @@ class CuboidIMSModule(pl.LightningModule):
     def save_visualization(
             self,
             data_idx: int,
-            seq_start_time: torch.tensor, # timestamp
+            seq_start_time: torch.tensor,  # timestamp
             in_seq: torch.Tensor,
             target_seq: torch.Tensor,
             pred_seq_list: torch.Tensor,
@@ -302,6 +307,7 @@ class CuboidIMSModule(pl.LightningModule):
         time_delta = timedelta(minutes=self.hparams.dataset.time_delta)
 
         if data_idx in example_data_idx_list:
+            # TODO: add times to our visualization?
             self.visualize.save_example(save_prefix=f'{mode}_epoch_{self.current_epoch}_data_{data_idx}',
                                         in_seq=in_seq,
                                         target_seq=target_seq,
@@ -311,8 +317,11 @@ class CuboidIMSModule(pl.LightningModule):
 
             if self.hparams.logging.use_wandb:
                 x_images = [wandb.Image(image, caption=start_time + t * time_delta) for t, image in enumerate(in_seq)]
-                y_images = [wandb.Image(image, caption=start_time + (t + self.hparams.model.in_len) * time_delta) for t, image in enumerate(target_seq)]
-                y_hat_images = [wandb.Image(image) for image in pred_seq_list]
+                y_images = [wandb.Image(image, caption=start_time + (t + self.hparams.model.in_len) * time_delta) for
+                            t, image in enumerate(target_seq)]
+                y_hat_images = [wandb.Image(image, caption=start_time + (t + self.hparams.model.in_len) * time_delta)
+                                for
+                                t, image in enumerate(pred_seq_list)]
 
                 wandb.log({f"{mode}": {"x": x_images, "y": y_images, "y_hat": y_hat_images}})
 
@@ -431,15 +440,16 @@ def get_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--logging-dir', default=None, type=str)
     parser.add_argument('--gpus', default=1, type=int)
-    parser.add_argument('--cfg', default=None, type=str)
-    parser.add_argument('--ckpt-path', default=None, type=str)
-    parser.add_argument('--pretrained', default=False, type=bool)
-    parser.add_argument('--fine-tune', default=False, type=bool)
-    parser.add_argument('--state-dict-file-name', default=None, type=str)
-    # TODO: add help to the arguments!
-    # TODO: return to these arguments when they will be relevant
-    # parser.add_argument('--test', action='store_true')
-
+    parser.add_argument('--cfg', default=None, type=str, help="config file path.")
+    parser.add_argument('--ckpt-path', default=None, type=str,
+                        help="when set the model will start from that pretrained checkpoint.")
+    parser.add_argument('--state-dict-file-name', default=None, type=str,
+                        help="when set the model will start from that state dict."
+                             "WARNING: when setting both --state-dict-file-name and --ckpt-path, ckpt-path will take "
+                             "place.")
+    parser.add_argument('--pretrained', default=False, type=bool,
+                        help="when set to True the model will only be tested."
+                             "only one of --state-dict-file-name or --ckpt-path must be set.")
     return parser
 
 
@@ -449,14 +459,11 @@ def main():
     parser = get_parser()
     args = parser.parse_args()
 
-    # TODO: start from a saved checkpoint with l_model.load_from_checkpoint(PATH), do we need to save the state_dict?!
     # TODO: config optimizer
-    # TODO: test from a pretrained checkpoint like sevir did
-    # TODO: save args in logs!
 
     # model
     l_module = CuboidIMSModule(logging_dir=args.logging_dir,
-                               cfg_file_path=args.cfg)
+                               args=args.__dict__)
     # data
     dm = l_module.dm
 
@@ -467,32 +474,31 @@ def main():
     trainer_kwargs = l_module.get_trainer_kwargs(args.gpus)
     trainer = pl.Trainer(**trainer_kwargs)
 
-    if args.pretrained or args.fine_tune:
+    if args.state_dict_file_name is not None and args.ckpt_path is not None:
+        sys.exit("both state-dict-file-name and ckpt-path are set!")
+
+    if args.state_dict_file_name is not None:
         state_dict_path = os.path.join(pretrained_checkpoints_dir, args.state_dict_file_name)
         if not os.path.exists(state_dict_path):
             warnings.warn(f"state dict {state_dict_path} not exists!")
-
-        state_dict = torch.load(state_dict_path)
-        l_module.torch_nn_module.load_state_dict(state_dict=state_dict)
-        if args.fine_tune:
-            trainer.fit(model=l_module,
-                        datamodule=dm)
         else:
-            trainer.test(model=l_module,
-                         datamodule=dm)
+            state_dict = torch.load(state_dict_path)
+            l_module.torch_nn_module.load_state_dict(state_dict=state_dict)
+            print(f"Using state dict {state_dict_path}")
 
+    if args.ckpt_path is not None:
+        if not os.path.exists(args.ckpt_path):
+            warnings.warn(f"checkpoint {args.ckpt_path} not exists!")
+        else:
+            print(f"Using checkpoint {args.ckpt_path}")
+
+    if args.pretrained:
+        trainer.test(model=l_module,
+                     datamodule=dm)
     else:
-        ckpt_path = None
-        if args.ckpt_path is not None:
-            if not os.path.exists(args.ckpt_path):
-                warnings.warn(f"ckpt {args.ckpt_path} not exists! Start training from epoch 0.")
-            else:
-                print(f"Using checkpoint {args.ckpt_path}.")
-                ckpt_path = args.ckpt_path
-
         trainer.fit(model=l_module,
                     datamodule=dm,
-                    ckpt_path=ckpt_path)
+                    ckpt_path=args.ckpt_path)
 
 
 if __name__ == "__main__":

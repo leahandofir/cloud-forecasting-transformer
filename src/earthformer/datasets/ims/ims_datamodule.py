@@ -45,7 +45,7 @@ class IMSLightningDataModule(LightningDataModule):
                                   **self.data_set_kwargs)
         self.ims_test = IMSDataset(start_date=self.train_test_split_date, end_date=self.end_date,
                                    **self.data_set_kwargs)
-        # TODO: test and train are the same
+        # TODO: test and predict are the same
         self.ims_predict = IMSDataset(start_date=self.train_test_split_date, end_date=self.end_date,
                                       **self.data_set_kwargs)
 
