@@ -16,6 +16,7 @@ from src.earthformer.visualization.ims.ims_visualize import IMSVisualize
 from src.earthformer.config import cfg
 from src.earthformer.utils.optim import SequentialLR, warmup_lambda
 from src.earthformer.utils.apex_ddp import ApexDDPStrategy
+from src.earthformer.utils.vgg import Vgg16
 
 import logging
 import wandb
@@ -56,8 +57,9 @@ class CuboidIMSModule(pl.LightningModule):
 
         # torch nn module
         self.torch_nn_module = self._get_torch_nn_module()
-
-        self.train_loss = F.mse_loss
+        self.vgg_net = Vgg16()
+        self.train_loss = lambda y, y_hat: self.hparams.optim.mse_coefficient * F.mse_loss(y, y_hat) + \
+                                           self.hparams.optim.perceptual_coefficient * self.perceptual_loss(y, y_hat)
         self.validation_loss = torchmetrics.MeanSquaredError()  # TODO: why they are different?
 
         # total_num_steps = (number of epochs) * (number of batches in the train data)
@@ -67,6 +69,26 @@ class CuboidIMSModule(pl.LightningModule):
 
         # create logging directories and set up logging
         self._init_logging(logging_dir)
+
+    def perceptual_loss(self, y, y_hat):
+        '''
+        the shape of y, y_hat is NTHWC.
+        the calculated loss is the average of all the samples in that batch.
+        '''
+
+        def calc_activations(img):  # img is a Torch tensor with layout HWC
+            if img.Size[2] == 1:  # grayscale
+                img = torch.stack([img] * 3, dim=-1)
+            return getattr(self.vgg_net(img), self.hparams.optim.vgg_layer)
+
+        sum_loss = 0
+        for i in range(self.hparams.optim.micro_batch_size):
+            y_sample = y[i]
+            y_hat_sample = y_hat[i]
+            for j in range(self.hparams.model.out_len):
+                sum_loss += F.mse_loss(calc_activations(y_sample[j]), calc_activations(y_hat_sample[j]))
+
+        return sum_loss / (self.hparams.optim.micro_batch_size * self.hparams.model.out_len)
 
     def _init_logging(self, logging_dir: str = None):
         # creates logging directories and adds their path as data members
@@ -302,7 +324,6 @@ class CuboidIMSModule(pl.LightningModule):
                     fss_accum(fss, y_sample[j, :, :, c] * pixel_scale, y_hat_sample[j, :, :, c] * pixel_scale)
 
         return fss_compute(fss)
-
 
     def save_visualization(
             self,

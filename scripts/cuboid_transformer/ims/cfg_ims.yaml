@@ -42,7 +42,13 @@ optim:
   early_stop: true
   early_stop_mode: "min"
   early_stop_patience: 20
+  # checkpoints
   save_top_k: 1
+  # loss
+  vgg_layer: relu4_3
+  mse_coefficient: 0.5
+  perceptual_coefficient: 0.5
+
 logging:
   logging_prefix: "Cuboid_IMS"
   monitor_lr: true
