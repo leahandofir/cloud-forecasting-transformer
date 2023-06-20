@@ -76,6 +76,24 @@ class CuboidIMSModule(pl.LightningModule):
         the calculated loss is the average of all the samples in that batch.
         '''
         # TODO: instead of a loop apply in vectors
+        # TODO: the following code requires final testing
+        
+        # # if grayscale, duplicate all channels 3 times
+        # if y.shape[2] == 1:
+        #     y = torch.repeat_interleave(y, 3, dim=-1)
+        #     y_hat = torch.repeat_interleave(y_hat, 3, dim=-1)
+
+        # # flatten the batch into one long sequence, 
+        # # which can be interpreted as a batch of images 
+        # y = y.flatten(end_dim=1)
+        # y_hat = y_hat.flatten(end_dim=1)
+
+        # y = getattr(self.vgg_net(y), self.hparams.optim.vgg_layer)
+        # y_hat = getattr(self.vgg_net(y), self.hparams.optim.vgg_layer)
+
+        # loss = F.mse_loss(y, y_hat) # computes mean over all pixels
+
+
         def calc_activations(img):  # img is a Torch tensor with layout HWC
             if img.Size[2] == 1:  # grayscale
                 img = torch.stack([img] * 3, dim=-1)
