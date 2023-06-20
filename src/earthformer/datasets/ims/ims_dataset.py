@@ -124,7 +124,7 @@ class IMSDataset(Dataset):
             return s
 
         self._events['time_utc'] = self._events['time_utc'].apply(lambda s: correct_datetime_format(s))
-        self._events['time_utc'] = pd.to_datetime(self._events['time_utc'])
+        self._events['time_utc'] = pd.to_datetime(self._events['time_utc'], format="%Y-%m-%d %H:%M:%S")
 
         # filter catalog file to contain only the relevant dates and img_type
         if self.start_date is not None:
