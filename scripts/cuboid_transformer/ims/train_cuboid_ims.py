@@ -75,7 +75,7 @@ class CuboidIMSModule(pl.LightningModule):
         the shape of y, y_hat is NTHWC.
         the calculated loss is the average of all the samples in that batch.
         '''
-
+        # TODO: instead of a loop apply in vectors
         def calc_activations(img):  # img is a Torch tensor with layout HWC
             if img.Size[2] == 1:  # grayscale
                 img = torch.stack([img] * 3, dim=-1)
@@ -315,6 +315,7 @@ class CuboidIMSModule(pl.LightningModule):
         compares between every pair of ground truth frame and predicted frame for every sequence in the batch.
         if there are more than one channel in the frame, every one of them is compared separately.
         '''
+        # TODO: instead of a loop apply in vectors
         pixel_scale = 255 if self.hparams.dataset.preprocess.scale else 1
         fss = fss_init(self.hparams.trainer.fss.threshold, self.hparams.trainer.fss.scale)
         for i in range(self.hparams.optim.micro_batch_size):

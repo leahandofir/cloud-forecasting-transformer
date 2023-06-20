@@ -115,8 +115,18 @@ class IMSDataset(Dataset):
 
     def _load_events(self):
         self._events = self.catalog
-        # filter catalog file to contain only the relevant dates and img_type
 
+        # convert time_utc column to datetime
+        def correct_datetime_format(s):  # string date, with or without hour
+            date_parts = s.split(" ")
+            if len(date_parts) == 1:  # date with no hour
+                return f'{s} 00:00:00'
+            return s
+
+        self._events['time_utc'] = self._events['time_utc'].apply(lambda s: correct_datetime_format(s))
+        self._events['time_utc'] = pd.to_datetime(self._events['time_utc'])
+
+        # filter catalog file to contain only the relevant dates and img_type
         if self.start_date is not None:
             self._events = self._events[self._events.time_utc >= self.start_date]
         if self.end_date is not None:
@@ -150,7 +160,7 @@ class IMSDataset(Dataset):
 
         seq_start_time = raw_seq_start_time + datetime.timedelta(minutes=self.raw_time_delta) * start_idx
 
-        seq = raw_seq[slice_sample, :, :, :] # TODO: allow layout different then THWC
+        seq = raw_seq[slice_sample, :, :, :]  # TODO: allow layout different then THWC
         return seq_start_time, seq
 
     def close(self):
