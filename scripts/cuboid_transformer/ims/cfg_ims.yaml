@@ -1,8 +1,8 @@
 dataset:
   dataset_name: "ims"
-  img_type: "MIDDLE_EAST_VIS"
-  seq_len: 25
-  raw_seq_len: 169
+  img_type: "MIDDLE_EAST_IR"
+  seq_len: 20
+  raw_seq_len: 72
   stride: 12
   layout: "THWC"
   raw_img_shape: [600, 600, 1]
@@ -26,13 +26,13 @@ dataset:
 optim:
   total_batch_size: 32
   micro_batch_size: 1
-  num_workers: 1
+  num_workers: 0
   seed: 0
   method: "adamw"
   lr: 0.001
   wd: 0.0
   gradient_clip_val: 1.0
-  max_epochs: 40
+  max_epochs: 2 #TODO: there is an error when this is 1
   # scheduler
   lr_scheduler_mode: "cosine"
   min_lr_ratio: 1.0e-1
@@ -58,9 +58,9 @@ logging:
   use_csv: true
   use_wandb: true
   visualize:
-    train_example_data_idx_list: [ 0, 10, 20 ,50 ]
-    val_example_data_idx_list: [ 0, 10, 20, 50 ]
-    test_example_data_idx_list: [ 0, 80, 160, 240, 320, 400 ]
+    train_example_data_idx_list: [0, 10, 20 ,50]
+    val_example_data_idx_list: [0, 10, 20, 50]
+    test_example_data_idx_list: [0, 80, 160, 240, 320, 400]
     eval_example_only: false
     fs: 10
     figsize: [ 24, 8 ]
@@ -74,8 +74,8 @@ trainer:
     threshold: 160
     scale: 30
 model:
-  in_len: 13
-  out_len: 12
+  in_len: 12
+  out_len: 8
   base_units: 128
   block_units: null
   scale_alpha: 1.0

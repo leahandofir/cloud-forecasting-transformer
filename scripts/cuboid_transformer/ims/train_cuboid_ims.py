@@ -58,8 +58,6 @@ class CuboidIMSModule(pl.LightningModule):
         # torch nn module
         self.torch_nn_module = self._get_torch_nn_module()
         self.vgg_net = Vgg16()
-        self.train_loss = lambda y, y_hat: self.hparams.optim.mse_coefficient * F.mse_loss(y, y_hat) + \
-                                           self.hparams.optim.perceptual_coefficient * self.perceptual_loss(y, y_hat)
         self.validation_loss = torchmetrics.MeanSquaredError()  # TODO: why they are different?
 
         # total_num_steps = (number of epochs) * (number of batches in the train data)
@@ -75,38 +73,26 @@ class CuboidIMSModule(pl.LightningModule):
         the shape of y, y_hat is NTHWC.
         the calculated loss is the average of all the samples in that batch.
         '''
-        # TODO: instead of a loop apply in vectors
         # TODO: the following code requires final testing
-        
-        # # if grayscale, duplicate all channels 3 times
-        # if y.shape[2] == 1:
-        #     y = torch.repeat_interleave(y, 3, dim=-1)
-        #     y_hat = torch.repeat_interleave(y_hat, 3, dim=-1)
+        # if grayscale, duplicate all channels 3 times
+        if self.dm.get_hwc()[-1] == 1:
+            y = torch.repeat_interleave(y, 3, dim=-1)
+            y_hat = torch.repeat_interleave(y_hat, 3, dim=-1)
 
-        # # flatten the batch into one long sequence, 
-        # # which can be interpreted as a batch of images 
-        # y = y.flatten(end_dim=1)
-        # y_hat = y_hat.flatten(end_dim=1)
+        # flatten the batch into one long sequence,
+        # which can be interpreted as a batch of images
+        y = y.flatten(end_dim=1)
+        y_hat = y_hat.flatten(end_dim=1)
 
-        # y = getattr(self.vgg_net(y), self.hparams.optim.vgg_layer)
-        # y_hat = getattr(self.vgg_net(y), self.hparams.optim.vgg_layer)
+        # change dimensions to be TCHW
+        y = y.permute(0, 3, 1, 2)
+        y_hat = y_hat.permute(0, 3, 1, 2)
 
-        # loss = F.mse_loss(y, y_hat) # computes mean over all pixels
+        y = getattr(self.vgg_net(y), self.hparams.optim.vgg_layer)
+        y_hat = getattr(self.vgg_net(y_hat), self.hparams.optim.vgg_layer)
 
-
-        def calc_activations(img):  # img is a Torch tensor with layout HWC
-            if img.Size[2] == 1:  # grayscale
-                img = torch.stack([img] * 3, dim=-1)
-            return getattr(self.vgg_net(img), self.hparams.optim.vgg_layer)
-
-        sum_loss = 0
-        for i in range(self.hparams.optim.micro_batch_size):
-            y_sample = y[i]
-            y_hat_sample = y_hat[i]
-            for j in range(self.hparams.model.out_len):
-                sum_loss += F.mse_loss(calc_activations(y_sample[j]), calc_activations(y_hat_sample[j]))
-
-        return sum_loss / (self.hparams.optim.micro_batch_size * self.hparams.model.out_len)
+        loss = F.mse_loss(y, y_hat)  # computes mean over all pixels
+        return loss
 
     def _init_logging(self, logging_dir: str = None):
         # creates logging directories and adds their path as data members
@@ -167,8 +153,13 @@ class CuboidIMSModule(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         start_time, x, y = self._get_x_y_from_batch(batch)
+
         y_hat = self(x)
-        loss = self.train_loss(y_hat, y)
+
+        mse_loss = F.mse_loss(y, y_hat)
+        perceptual_loss = self.perceptual_loss(y, y_hat)
+        loss = self.hparams.optim.mse_coefficient * mse_loss + \
+               self.hparams.optim.perceptual_coefficient * perceptual_loss
 
         data_idx = int(batch_idx * self.hparams.optim.micro_batch_size)
 
@@ -181,6 +172,8 @@ class CuboidIMSModule(pl.LightningModule):
                                 mode="train")
 
         self.log('train_loss_step', loss, prog_bar=True, on_step=True, on_epoch=False)
+        self.log('train_mse_loss_step', mse_loss, on_step=True, on_epoch=False)
+        self.log('train_perceptual_loss_step', perceptual_loss, on_step=True, on_epoch=False)
         return loss
 
     def predict_step(self, batch, batch_idx):
@@ -398,6 +391,7 @@ class CuboidIMSModule(pl.LightningModule):
                                     num_workers=self.hparams.optim.num_workers,
                                     img_type=self.hparams.dataset.img_type,
                                     seq_len=self.hparams.dataset.seq_len,
+                                    raw_seq_len=self.hparams.dataset.raw_seq_len,
                                     stride=self.hparams.dataset.stride,
                                     time_delta=self.hparams.dataset.time_delta,
                                     raw_time_delta=self.hparams.dataset.raw_time_delta,
@@ -506,9 +500,7 @@ def get_parser():
     parser.add_argument('--ckpt-path', default=None, type=str,
                         help="when set the model will start from that pretrained checkpoint.")
     parser.add_argument('--state-dict-file-name', default=None, type=str,
-                        help="when set the model will start from that state dict."
-                             "WARNING: when setting both --state-dict-file-name and --ckpt-path, ckpt-path will take "
-                             "place.")
+                        help="when set the model will start from that state dict.")
     parser.add_argument('--pretrained', default=False, type=bool,
                         help="when set to True the model will only be tested."
                              "only one of --state-dict-file-name or --ckpt-path must be set.")
