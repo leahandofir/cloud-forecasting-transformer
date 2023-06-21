@@ -410,7 +410,7 @@ class CuboidIMSModule(pl.LightningModule):
         dm.setup()
         return dm
 
-    def _get_torch_nn_module(self):
+    def _get_torch_nn_module(self): # TODO: move this to utils and use it in inference as well
         model_cfg = self.hparams.model
 
         # ---- compute fields that require arithmetic operations on config values  ---- #
