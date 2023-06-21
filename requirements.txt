@@ -75,7 +75,6 @@ pyparsing==3.0.9
 pypng==0.20220715.0
 pyrsistent==0.19.3
 PySocks==1.7.1
-pysteps==1.7.4
 python-dateutil==2.8.2
 pytorch-extension==0.2
 pytorch-lightning==1.7.7
@@ -99,12 +98,12 @@ tensorboard-data-server==0.7.0
 termcolor==2.3.0
 timm==0.9.2
 tokenizers==0.13.3
-torch==1.12.1+cu116
-torchaudio==0.12.1+cu116
+torch==1.12.1
+torchaudio==0.12.1
 torchdata==0.4.1
 torchmetrics==0.11.4
 torchtext==0.13.1
-torchvision==0.13.1+cu116
+torchvision==0.13.1
 tqdm==4.65.0
 transformers==4.29.1
 typing-extensions==4.5.0
