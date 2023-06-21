@@ -21,8 +21,6 @@ contourpy==1.0.7
 cycler==0.11.0
 docker-pycreds==0.4.0
 docutils==0.16
-# Editable install with no version control (earthformer==0.0.1.dev20230621)
--e /home/theator/leah/cloud-forecasting-transformer/src
 einops==0.6.1
 fairscale==0.4.13
 filelock==3.12.0
