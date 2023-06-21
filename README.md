@@ -34,6 +34,6 @@ Find detailed instructions in how to train the models or running inference with 
 Copyright
 Unless otherwise noted, you may download and copy content from the EUMETSAT website(s) for your own personal and non-commercial use. For any other use of the content, you must request authorisation from EUMETSAT. 
 
-Earthformer
+Earthformer: https://github.com/amazon-science/earth-forecasting-transformer
 
-SEVIR 
+SEVIR: https://sevir.mit.edu/
