@@ -154,7 +154,7 @@ class IMSDataset(Dataset):
         raw_seq_start_time = event['time_utc']
 
         step_idx = self.time_delta // self.raw_time_delta
-        start_idx = seq_idx * self.stride * step_idx # TODO: check this!
+        start_idx = seq_idx * self.stride * step_idx  # TODO: check this!
         stop_idx = start_idx + self.real_sequence_len
         slice_sample = slice(start_idx, stop_idx, step_idx)
 
@@ -208,7 +208,7 @@ class IMSPreprocess:
         # convert to grayscale (1 x H x W) if necessary
         if grayscale:
             relevant_transforms.append(
-                transforms.Lambda(lambda x: transforms.Grayscale(x[:3, :, :]) if x.shape[0] > 1 else x))
+                transforms.Lambda(lambda x: transforms.Grayscale()(x[:3, :, :]) if x.shape[0] > 1 else x))
 
         # crop image if necessary
         if len(crop.keys()) > 0:

@@ -10,14 +10,24 @@ from .ims_cmap import get_cmap
 class IMSVisualize:
     def __init__(self, save_dir,
                  scale: bool = True,
-                 fs: int = 10,
-                 figsize: tuple = (24, 8),
-                 plot_stride: int = 2,
+                 fs: int = None,
+                 figsize: tuple = None,
+                 plot_stride: int = None,
                  ):
+
         self.save_dir = save_dir
         self.scale = scale
+
+        if fs is None:
+            fs = 10
         self.fs = fs
+
+        if figsize is None:
+            figsize = (24, 8)
         self.figsize = tuple(figsize)
+
+        if plot_stride is None:
+            plot_stride = 2
         self.plot_stride = plot_stride
 
     def _plot_seq(self, ax, row, label, seq, seq_len, max_len):

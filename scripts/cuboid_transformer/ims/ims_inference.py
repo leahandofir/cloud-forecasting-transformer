@@ -14,13 +14,13 @@ from src.earthformer.visualization.ims.ims_visualize import IMSVisualize
 
 START_TIME_FORMAT = "%Y%m%d%H%M"
 IMAGE_NAME_FORMAT = "%Y%m%d%H%M"
-SUPPORTED_FORMATS = ('png', )
+SUPPORTED_FORMATS = ('png',)
 
 pretrained_checkpoints_dir = cfg.pretrained_checkpoints_dir
 
 
 class CuboidIMSInference:
-    def __init__(self, ckpt_name, # TODO: add types!
+    def __init__(self, ckpt_name,  # TODO: add types!
                  data_dir,
                  start_time,
                  img_format,
@@ -54,12 +54,13 @@ class CuboidIMSInference:
             if key[0] == model_cfg.model_name:
                 pt_state_dict[".".join(key[1:])] = val
 
-        model = load_model(model_cfg)
-        self.model = model.load_state_dict(pt_state_dict)
+        self.model = load_model(model_cfg)
+        self.model.load_state_dict(pt_state_dict)
+        self.model.eval()
 
         # configurable attributes
         self.data_dir = data_dir
-        self.output_dir = output_dir # TODO: create if does not exists!
+        self.output_dir = output_dir  # TODO: create if does not exists!
         self.start_time = datetime.strptime(start_time, START_TIME_FORMAT)
         assert img_format in SUPPORTED_FORMATS, "Unsupported image format!"
         self.img_format = img_format
@@ -81,6 +82,7 @@ class CuboidIMSInference:
         self.plot_stride = plot_stride
 
         # inference constraints
+        self.in_len = model_cfg["in_len"]
         self.time_delta = dataset_cfg["time_delta"]
         self.scale = dataset_cfg["preprocess"]["scale"]
         self.grayscale = dataset_cfg["preprocess"]["grayscale"]
@@ -92,7 +94,7 @@ class CuboidIMSInference:
         curr_time = self.start_time
         time_delta = timedelta(minutes=self.time_delta)
 
-        for i in range(self.model.in_len):
+        for i in range(self.in_len):
             frame_path = os.path.join(self.data_dir, f"{curr_time.strftime(IMAGE_NAME_FORMAT)}.{self.img_format}")
             if not os.path.exists(frame_path):
                 print(f"Did not find input frame of time {curr_time}!")
@@ -112,20 +114,27 @@ class CuboidIMSInference:
                                  fs=self.fs,
                                  figsize=self.figsize,
                                  plot_stride=self.plot_stride)
-        visualize.save_example(save_prefix=f'prediction_from_{self.start_time.strftime(IMAGE_NAME_FORMAT)}_with_ckpt_{self.ckpt_name}',
-                               in_seq=x,
-                               target_seq=y,
-                               pred_seq_list=[y],
-                               time_delta=self.time_delta)
+        visualize.save_example(
+            save_prefix=f'prediction_from_{self.start_time.strftime(IMAGE_NAME_FORMAT)}_with_ckpt_{self.ckpt_name}',
+            in_seq=x,
+            target_seq=y,
+            pred_seq_list=[y],
+            time_delta=self.time_delta)
+
     def inference(self):
         raw_x = self._load_images()
+        x = self._preprocess(raw_x)
+        y = self.model(x)
+        self._save_visualization(x[0].detach().numpy(), y[0].detach().numpy()) #TODO: ugly
 
+    def _preprocess(self, raw_x):
+        # raw_x is a sequence of shape THWC
         preprocess = IMSPreprocess(grayscale=self.grayscale,
                                    scale=self.scale,
                                    crop=self.crop)
         x = preprocess(raw_x)
-        y = self.model(x)
-        self._save_visualization(x, y)
+        # x is a tensor of shape THWC, needs to be converted to batch of shape NTHWC
+        return torch.stack([x])
 
 
 def get_parser():
@@ -166,21 +175,7 @@ def get_parser():
 
 def main():
     parser = get_parser()
-    args = parser.parse_args()
-
-    ims_inference = CuboidIMSInference(ckpt_name=args.ckpt_name,
-                                       data_dir=args.data_dir,
-                                       start_time=args.start_time,
-                                       output_dir=args.output_dir,
-                                       img_format=args.img_format,
-                                       fs=args.fs,
-                                       figsize=args.figsize,
-                                       plot_stride=args.plot_stride,
-                                       left=args.left,
-                                       top=args.top,
-                                       width=args.width,
-                                       height=args.height
-                                       )
+    ims_inference = CuboidIMSInference(**vars(parser.parse_args()))
     ims_inference.inference()
 
 
