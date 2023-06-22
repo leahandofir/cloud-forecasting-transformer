@@ -9,8 +9,6 @@ class FSSLoss(nn.Module):
         self.hwc = hwc
         self.pixel_scale = pixel_scale
 
-    # WORK IN PROGRESS: right now FSS is computed for each couple of frames separately,
-    #                   and is NOT aggregated over the entire sequence
     # warning - heavily assumes layout NTWHC !
     def forward(self, output, target):
         
@@ -46,4 +44,6 @@ class FSSLoss(nn.Module):
         numerator   = ((F_n - O_n) ** 2).sum(dim=-2).sum(dim=-2)                             
         denominator = (F_n ** 2).sum(dim=-2).sum(dim=-2) + (O_n ** 2).sum(dim=-2).sum(dim=-2)
 
-        return 1 - numerator / denominator
+        # compute the mean loss for each sequence (loss is computed frame by frame)
+        # and multiply by -1 so we will want to minimize this
+        return -1 * (1 - numerator / denominator).mean(dim=-1)
