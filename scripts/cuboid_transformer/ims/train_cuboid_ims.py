@@ -54,9 +54,9 @@ class CuboidIMSModule(pl.LightningModule):
         # data module
         self.dm = self._get_dm()
 
-        # torch nn module
-        self.torch_nn_module = load_model(model_cfg=self.hparams.model)
-        self.vgg_net = Vgg16()
+        # load cuboid attention model
+        self.cuboid_attention_model = load_model(model_cfg=self.hparams.model)
+        self.vgg_model = Vgg16()
         self.validation_loss = torchmetrics.MeanSquaredError()  # TODO: why they are different?
 
         # total_num_steps = (number of epochs) * (number of batches in the train data)
@@ -87,8 +87,8 @@ class CuboidIMSModule(pl.LightningModule):
         y = y.permute(0, 3, 1, 2)
         y_hat = y_hat.permute(0, 3, 1, 2)
 
-        y = getattr(self.vgg_net(y), self.hparams.optim.vgg_layer)
-        y_hat = getattr(self.vgg_net(y_hat), self.hparams.optim.vgg_layer)
+        y = getattr(self.vgg_model(y), self.hparams.optim.vgg_layer)
+        y_hat = getattr(self.vgg_model(y_hat), self.hparams.optim.vgg_layer)
 
         loss = F.mse_loss(y, y_hat)  # computes mean over all pixels
         return loss
@@ -148,7 +148,7 @@ class CuboidIMSModule(pl.LightningModule):
                sample[:, self.hparams.model.in_len:(self.hparams.model.in_len + self.hparams.model.out_len), :, :, :]
 
     def forward(self, x):
-        return self.torch_nn_module(x)
+        return self.cuboid_attention_model(x)
 
     def training_step(self, batch, batch_idx):
         start_time, x, y = self._get_x_y_from_batch(batch)
@@ -454,7 +454,7 @@ def main():
             warnings.warn(f"state dict {state_dict_path} not exists!")
         else:
             state_dict = torch.load(state_dict_path)
-            l_module.torch_nn_module.load_state_dict(state_dict=state_dict)
+            l_module.cuboid_attention_model.load_state_dict(state_dict=state_dict)
             print(f"Using state dict {state_dict_path}")
 
     if args.ckpt_path is not None:

@@ -4,6 +4,9 @@ import numpy as np
 from matplotlib import pyplot as plt
 from .ims_cmap import get_cmap
 
+
+# TODO: try to use the cmap
+
 class IMSVisualize:
     def __init__(self, save_dir,
                  scale: bool = True,
@@ -27,7 +30,8 @@ class IMSVisualize:
                 ax[row][i // self.plot_stride].axis('off')
 
     def _visualize_result(self,
-                          in_seq, target_seq,
+                          in_seq,
+                          target_seq,
                           pred_seq_list,
                           label_list,
                           time_delta,
@@ -60,7 +64,9 @@ class IMSVisualize:
 
     def save_example(self,
                      save_prefix,
-                     in_seq: np.array, target_seq: np.array, pred_seq_list: List[np.array],
+                     in_seq: np.array,
+                     target_seq: np.array,
+                     pred_seq_list: List[np.array],
                      label_list: List[str] = ["cuboid_ims"],
                      time_delta: float = 5.0,
                      ):
