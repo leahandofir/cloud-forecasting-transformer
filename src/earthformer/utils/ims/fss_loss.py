@@ -10,17 +10,21 @@ class FSSLoss(torch.nn.Module):
                  hwc: tuple,
                  minimize: bool = True,
                  smooth_factor: int = 20,
-                 pixel_scale: int = 255):
+                 pixel_scale: bool = True,
+                 device: str = 'cuda:0'):
         super(FSSLoss, self).__init__()
         self.threshold = threshold
         self.scale = scale
         self.hwc = hwc
         self.minimize = -1 if minimize else 0
         self.smooth_factor = smooth_factor
-        self.pixel_scale = pixel_scale
+        self.pixel_scale = 255 if pixel_scale else 1
+        self.neighborhood_filter_dim = (self.hwc[-1], self.hwc[-1], self.scale, self.scale) # TODO: check
+        self.neighborhood_filter_mat = torch.full(self.neighborhood_filter_dim, 1 / self.scale ** 2, device=device)
 
     # warning - heavily assumes layout NTWHC!
     def forward(self, output, target):
+        # TODO: duplicated code
         # rescale pixels back to 0-255
         output = output * self.pixel_scale
         target = target * self.pixel_scale
@@ -36,11 +40,8 @@ class FSSLoss(torch.nn.Module):
 
         # compute each neighborhood's average value by applying convolution filter
         if self.scale > 1:
-            neighborhood_filter_dim = (output.shape[-1], output.shape[-1], self.scale, self.scale)
-            neighborhood_filter_mat = torch.full(neighborhood_filter_dim, 1 / self.scale ** 2)
-
-            F_n = F.conv2d(output.moveaxis(-1, -3), neighborhood_filter_mat).moveaxis(-3, -1)
-            O_n = F.conv2d(target.moveaxis(-1, -3), neighborhood_filter_mat).moveaxis(-3, -1)
+            F_n = F.conv2d(output.moveaxis(-1, -3), self.neighborhood_filter_mat).moveaxis(-3, -1)
+            O_n = F.conv2d(target.moveaxis(-1, -3), self.neighborhood_filter_mat).moveaxis(-3, -1)
         else:
             F_n = output
             O_n = target

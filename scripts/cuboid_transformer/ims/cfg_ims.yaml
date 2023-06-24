@@ -45,9 +45,15 @@ optim:
   # checkpoints
   save_top_k: 1
   # loss
-  vgg_layer: relu4_3
-  mse_coefficient: 0.25
-  perceptual_coefficient: 0.75
+  vgg:
+    layer: relu4_3
+  fss:
+    threshold: 160
+    scale: 10
+  loss_coefficients:
+    mse: 0.5
+    perceptual: 0.25
+    fss: 0.25
 
 logging:
   logging_prefix: "Cuboid_IMS"
@@ -65,6 +71,7 @@ logging:
     fs: 10
     figsize: [ 24, 8 ]
     plot_stride: 2
+
 trainer:
   check_val_every_n_epoch: 1
   log_step_ratio: 0.001
@@ -73,6 +80,7 @@ trainer:
   fss:
     threshold: 160
     scale: 30
+
 model:
   model_name: cuboid_attention_model
   in_len: 12

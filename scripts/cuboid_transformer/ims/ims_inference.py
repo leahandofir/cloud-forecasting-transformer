@@ -32,7 +32,7 @@ class CuboidIMSInference:
                  width: int,
                  height: int,
                  img_format: str = 'png',
-                 output_dir: str = '/'):
+                 output_dir: str = './'):
         """
         ckpt_name: The name of the checkpoint we want to load in pretrained_checkpoints directory.
         data_dir: The path of directory containing the images.
@@ -130,8 +130,8 @@ class CuboidIMSInference:
         visualize.save_example(
             save_prefix=f'prediction_from_{self.start_time.strftime(IMAGE_NAME_FORMAT)}_with_ckpt_{self.ckpt_name}',
             in_seq=x,
-            target_seq=y,
             pred_seq_list=[y],
+            label_list=[self.ckpt_name],
             time_delta=self.time_delta)
 
     def inference(self):
@@ -162,7 +162,7 @@ def get_parser():
                              "the image files has to be in PNG format.")
     parser.add_argument('--start-time', default=None, type=str,
                         help=f"the time of the first frame in the input in the following format {START_TIME_FORMAT}.")  # TODO: check the validity of the start-time
-    parser.add_argument('--output-dir', default="", type=str,
+    parser.add_argument('--output-dir', default="./", type=str,
                         help="the path where the inference will be saved at.")
     parser.add_argument('--img-format', default="png", type=str,
                         help=f"the format of the input images.")
