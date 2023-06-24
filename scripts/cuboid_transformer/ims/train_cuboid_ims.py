@@ -13,9 +13,11 @@ from src.earthformer.datasets.ims.ims_datamodule import IMSLightningDataModule
 from src.earthformer.visualization.ims.ims_visualize import IMSVisualize
 from src.earthformer.config import cfg
 from src.earthformer.utils.optim import SequentialLR, warmup_lambda
+from earthformer.utils.utils import get_parameter_names
 from src.earthformer.utils.apex_ddp import ApexDDPStrategy
-from earthformer.utils.ims.vgg import Vgg16
-from earthformer.utils.ims.load_model import load_model
+from src.earthformer.utils.ims.vgg import Vgg16
+from src.earthformer.utils.ims.load_model import load_model
+from src.earthformer.utils.ims.fss_loss import FSSLoss
 
 import logging
 import wandb
@@ -29,12 +31,11 @@ import argparse
 import json
 from pysteps.verification.spatialscores import fss_init, fss_accum, fss_compute
 
-FIRST_VERSION_NUM = 44
+FIRST_VERSION_NUM = 44 # TODO: change this
 pretrained_checkpoints_dir = cfg.pretrained_checkpoints_dir
 
 
 class CuboidIMSModule(pl.LightningModule):
-
     def __init__(self,
                  args: dict = None,
                  logging_dir: str = None):
@@ -57,6 +58,10 @@ class CuboidIMSModule(pl.LightningModule):
         # load cuboid attention model
         self.cuboid_attention_model = load_model(model_cfg=self.hparams.model)
         self.vgg_model = Vgg16()
+        self.fss_loss = FSSLoss(threshold=self.hparams.optim.fss.threshold,
+                                scale=self.hparams.optim.fss.scale,
+                                hwc=self.hparams.model.hwc,
+                                pixel_scale=self.hparams.dataset.preprocess.scale)
         self.validation_loss = torchmetrics.MeanSquaredError()  # TODO: why they are different?
 
         # total_num_steps = (number of epochs) * (number of batches in the train data)
@@ -68,10 +73,10 @@ class CuboidIMSModule(pl.LightningModule):
         self._init_logging(logging_dir)
 
     def perceptual_loss(self, y, y_hat):
-        '''
+        """
         the shape of y, y_hat is NTHWC.
         the calculated loss is the average of all the samples in that batch.
-        '''
+        """
         # TODO: the following code requires final testing
         # if grayscale, duplicate all channels 3 times
         if self.hparams.model.hwc[-1] == 1:
@@ -87,8 +92,8 @@ class CuboidIMSModule(pl.LightningModule):
         y = y.permute(0, 3, 1, 2)
         y_hat = y_hat.permute(0, 3, 1, 2)
 
-        y = getattr(self.vgg_model(y), self.hparams.optim.vgg_layer)
-        y_hat = getattr(self.vgg_model(y_hat), self.hparams.optim.vgg_layer)
+        y = getattr(self.vgg_model(y), self.hparams.optim.vgg.layer)
+        y_hat = getattr(self.vgg_model(y_hat), self.hparams.optim.vgg.layer)
 
         loss = F.mse_loss(y, y_hat)  # computes mean over all pixels
         return loss
@@ -157,8 +162,10 @@ class CuboidIMSModule(pl.LightningModule):
 
         mse_loss = F.mse_loss(y, y_hat)
         perceptual_loss = self.perceptual_loss(y, y_hat)
-        loss = self.hparams.optim.mse_coefficient * mse_loss + \
-               self.hparams.optim.perceptual_coefficient * perceptual_loss
+        fss_loss = self.fss_loss(target=y, output=y_hat)
+        loss = self.hparams.optim.loss_coefficients.mse * mse_loss + \
+               self.hparams.optim.loss_coefficients.perceptual * perceptual_loss + \
+               self.hparams.optim.loss_coefficients.fss * fss_loss
 
         data_idx = int(batch_idx * self.hparams.optim.micro_batch_size)
 
@@ -173,14 +180,30 @@ class CuboidIMSModule(pl.LightningModule):
         self.log('train_loss_step', loss, prog_bar=True, on_step=True, on_epoch=False)
         self.log('train_mse_loss_step', mse_loss, on_step=True, on_epoch=False)
         self.log('train_perceptual_loss_step', perceptual_loss, on_step=True, on_epoch=False)
+        self.log('train_fss_loss_step', fss_loss, on_step=True, on_epoch=False)
         return loss
 
     def predict_step(self, batch, batch_idx):
         pass
 
     def configure_optimizers(self):
+        # the code is taken from scripts/cuboid_transformer/sevir/train_cuboid_sevir.py
+        # disable the weight decay for layer norm weights and all bias terms.
+        # https://arxiv.org/pdf/2106.15739.pdf
+        decay_parameters = [name for name in get_parameter_names(self.cuboid_attention_model, [torch.nn.LayerNorm]) \
+                            if "bias" not in name]
+        optimizer_grouped_parameters = [{
+            'params': [p for n, p in self.cuboid_attention_model.named_parameters()
+                       if n in decay_parameters],
+            'weight_decay': self.hparams.optim.wd
+        }, {
+            'params': [p for n, p in self.cuboid_attention_model.named_parameters()
+                       if n not in decay_parameters],
+            'weight_decay': 0.0
+        }]
+
         if self.hparams.optim.method == 'adamw':
-            optimizer = AdamW(params=self.parameters(),
+            optimizer = AdamW(params=optimizer_grouped_parameters,
                               lr=self.hparams.optim.lr,
                               weight_decay=self.hparams.optim.wd)
         else:
@@ -209,7 +232,7 @@ class CuboidIMSModule(pl.LightningModule):
         return {'optimizer': optimizer, 'lr_scheduler': lr_scheduler_config}
 
     def get_trainer_kwargs(self, gpus):
-        r"""
+        """
         Default kwargs used when initializing pl.Trainer
         """
         # TODO: early stopping not implemented currently
@@ -319,12 +342,12 @@ class CuboidIMSModule(pl.LightningModule):
         return e.detach().float().cpu().numpy()
 
     def _calc_fss_batch(self, y, y_hat):
-        '''
+        """
         y and y_hat are from layout NTHWC.
         calculates accumulated fss for the whole batch.
         compares between every pair of ground truth frame and predicted frame for every sequence in the batch.
         if there are more than one channel in the frame, every one of them is compared separately.
-        '''
+        """
         # TODO: instead of a loop apply in vectors
         pixel_scale = 255 if self.hparams.dataset.preprocess.scale else 1
         fss = fss_init(self.hparams.trainer.fss.threshold, self.hparams.trainer.fss.scale)
@@ -429,8 +452,6 @@ def main():
 
     parser = get_parser()
     args = parser.parse_args()
-
-    # TODO: config optimizer
 
     # model
     l_module = CuboidIMSModule(logging_dir=args.logging_dir,

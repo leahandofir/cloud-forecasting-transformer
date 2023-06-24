@@ -20,19 +20,30 @@ pretrained_checkpoints_dir = cfg.pretrained_checkpoints_dir
 
 
 class CuboidIMSInference:
-    def __init__(self, ckpt_name,  # TODO: add types!
-                 data_dir,
-                 start_time,
-                 img_format,
-                 output_dir,
-                 fs,
-                 figsize,
-                 plot_stride,
-                 left,
-                 top,
-                 width,
-                 height):
-
+    def __init__(self,
+                 ckpt_name: str,
+                 data_dir: str,
+                 start_time: str,
+                 fs: int,
+                 figsize: tuple,
+                 plot_stride: int,
+                 left: int,
+                 top: int,
+                 width: int,
+                 height: int,
+                 img_format: str = 'png',
+                 output_dir: str = '/'):
+        """
+        ckpt_name: The name of the checkpoint we want to load in pretrained_checkpoints directory.
+        data_dir: The path of directory containing the images.
+        start_time: The time of the first frame in the sequence.
+        img_format: The file format of the images.
+        output_dir: The output directory, the output is a summary file of the prediction.
+        fs: The font size in the summary.
+        figsize: The size of the images in the summary.
+        plot_stride: The "jumps" between frames in the summary.
+        left, top, width, height: Crop input images parameters.
+        """
         self.ckpt_name = ckpt_name
 
         # load model
@@ -60,11 +71,13 @@ class CuboidIMSInference:
 
         # configurable attributes
         self.data_dir = data_dir
-        self.output_dir = output_dir  # TODO: create if does not exists!
+        self.output_dir = output_dir
+        os.makedirs(self.output_dir, exist_ok=True) # creates output_dir if does not exist
         self.start_time = datetime.strptime(start_time, START_TIME_FORMAT)
         assert img_format in SUPPORTED_FORMATS, "Unsupported image format!"
         self.img_format = img_format
 
+        # take checkpoint defaults if None
         if left is None:
             left = dataset_cfg["preprocess"]["crop"]["left"]
         if top is None:
@@ -125,7 +138,8 @@ class CuboidIMSInference:
         raw_x = self._load_images()
         x = self._preprocess(raw_x)
         y = self.model(x)
-        self._save_visualization(x[0].detach().numpy(), y[0].detach().numpy()) #TODO: ugly
+        # the batch size is 1, detach from model
+        self._save_visualization(x[0].detach().numpy(), y[0].detach().numpy())
 
     def _preprocess(self, raw_x):
         # raw_x is a sequence of shape THWC
