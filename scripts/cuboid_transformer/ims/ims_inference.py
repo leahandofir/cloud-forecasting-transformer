@@ -7,10 +7,10 @@ from datetime import datetime, timedelta
 
 import torch
 
-from src.earthformer.utils.ims.load_model import load_model
-from src.earthformer.config import cfg
-from src.earthformer.datasets.ims.ims_dataset import IMSPreprocess
-from src.earthformer.visualization.ims.ims_visualize import IMSVisualize
+from earthformer.utils.ims.load_model import load_model
+from earthformer.config import cfg
+from earthformer.datasets.ims.ims_dataset import IMSPreprocess
+from earthformer.visualization.ims.ims_visualize import IMSVisualize
 
 START_TIME_FORMAT = "%Y%m%d%H%M"
 IMAGE_NAME_FORMAT = "%Y%m%d%H%M"
@@ -49,7 +49,7 @@ class CuboidIMSInference:
         # load model
         ckpt_path = os.path.join(pretrained_checkpoints_dir, ckpt_name)
         if os.path.exists(ckpt_path):
-            checkpoint = torch.load(ckpt_path)
+            checkpoint = torch.load(ckpt_path, map_location=torch.device('cpu'))
         else:
             print("The ckpt file path does not exist!")
             sys.exit()
@@ -153,14 +153,14 @@ class CuboidIMSInference:
 
 def get_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--ckpt-name', default=None, type=str,
+    parser.add_argument('--ckpt-name', default=None, type=str, required=True,
                         help="the checkpoint of the model we want to inference with."
                              "the checkpoint file is expected to be in the pretrained_checkpoints dir.")
-    parser.add_argument('--data-dir', default=None, type=str,
+    parser.add_argument('--data-dir', default=None, type=str, required=True,
                         help="the path where the images are at. "
                              f"the images name has to be in the following format {IMAGE_NAME_FORMAT}."
                              "the image files has to be in PNG format.")
-    parser.add_argument('--start-time', default=None, type=str,
+    parser.add_argument('--start-time', default=None, type=str, required=True,
                         help=f"the time of the first frame in the input in the following format {START_TIME_FORMAT}.")  # TODO: check the validity of the start-time
     parser.add_argument('--output-dir', default="./", type=str,
                         help="the path where the inference will be saved at.")

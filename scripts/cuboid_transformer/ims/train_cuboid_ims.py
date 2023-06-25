@@ -9,15 +9,15 @@ from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR
 from torch.nn import functional as F
 import torchmetrics
 
-from src.earthformer.datasets.ims.ims_datamodule import IMSLightningDataModule
-from src.earthformer.visualization.ims.ims_visualize import IMSVisualize
-from src.earthformer.config import cfg
-from src.earthformer.utils.optim import SequentialLR, warmup_lambda
+from earthformer.datasets.ims.ims_datamodule import IMSLightningDataModule
+from earthformer.visualization.ims.ims_visualize import IMSVisualize
+from earthformer.config import cfg
+from earthformer.utils.optim import SequentialLR, warmup_lambda
 from earthformer.utils.utils import get_parameter_names
-from src.earthformer.utils.apex_ddp import ApexDDPStrategy
-from src.earthformer.utils.ims.vgg import Vgg16
-from src.earthformer.utils.ims.load_model import load_model
-from src.earthformer.utils.ims.fss_loss import FSSLoss
+from earthformer.utils.apex_ddp import ApexDDPStrategy
+from earthformer.utils.ims.vgg import Vgg16
+from earthformer.utils.ims.load_model import load_model
+from earthformer.utils.ims.fss_loss import FSSLoss
 
 import logging
 import wandb

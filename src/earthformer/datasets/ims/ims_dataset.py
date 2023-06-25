@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 import datetime, h5py, os
 from typing import List, Union, Dict, Sequence
-from src.earthformer.config import cfg
+from earthformer.config import cfg
 
 # IMS dataset constants
 IMS_IMG_TYPES = {"MIDDLE_EAST_VIS", "MIDDLE_EAST_DAY_CLOUDS", "MIDDLE_EAST_COLORED", "MIDDLE_EAST_IR"}

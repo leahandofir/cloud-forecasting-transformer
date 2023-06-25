@@ -1,8 +1,7 @@
 from pytorch_lightning import LightningDataModule
 from torch.utils.data import DataLoader
-from src.earthformer.config import cfg
 from datetime import datetime
-from src.earthformer.datasets.ims.ims_dataset import IMSDataset
+from earthformer.datasets.ims.ims_dataset import IMSDataset
 
 VALID_BATCH_LAYOUTS = {'NTHWC'}
 

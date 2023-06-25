@@ -1,5 +1,5 @@
 import omegaconf as OmegaConf
-from src.earthformer.cuboid_transformer.cuboid_transformer import CuboidTransformerModel
+from earthformer.cuboid_transformer.cuboid_transformer import CuboidTransformerModel
 
 
 def load_model(model_cfg):
