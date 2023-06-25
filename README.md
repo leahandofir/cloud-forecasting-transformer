@@ -11,7 +11,14 @@
 ## Installation
 ### Training
 ### Inferencing
-
+Clone the repository and install requirements:
+```
+git clone https://github.com/leahandofir/cloud-forecasting-transformer.git
+cd cloud-forecasting-transformer
+pip install -r requirements.txt
+python3 -m pip install -U -e . --no-build-isolation --extra-index-url --trusted-host
+```
+Run inference script at scripts/cuboid_transformer/ims/ims_inference.py.
 ## Dataset
 ### VIS vs. IR
 
