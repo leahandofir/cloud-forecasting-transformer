@@ -2,7 +2,7 @@ import os
 from typing import List
 import numpy as np
 from matplotlib import pyplot as plt
-from .ims_cmap import get_cmap
+# from .ims_cmap import get_cmap
 
 # TODO: try to use the cmap
 
@@ -52,6 +52,7 @@ class IMSVisualize:
         All sequences have to be at the same dimensions as the target sequence.
         It is not mandatory to plot the target sequence, if target_seq is None the target is not plotted.
         """
+        # determine amount of subplots
         in_len = in_seq.shape[0]
         out_len = pred_seq_list[0].shape[0]
         max_len = max(in_len, out_len)
@@ -61,6 +62,7 @@ class IMSVisualize:
 
         fig, ax = plt.subplots(nrows=nrows, ncols=ncols, figsize=self.figsize)
 
+        # plot all sequences
         self._plot_seq(ax, 0, "Inputs", in_seq, in_len, max_len)
         if target_seq is not None:
             self._plot_seq(ax, 1, "Target", target_seq, out_len, max_len)
