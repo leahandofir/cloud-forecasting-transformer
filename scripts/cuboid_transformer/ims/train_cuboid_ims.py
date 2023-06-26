@@ -61,8 +61,9 @@ class CuboidIMSModule(pl.LightningModule):
         self.fss_loss = FSSLoss(threshold=self.hparams.optim.fss.threshold,
                                 scale=self.hparams.optim.fss.scale,
                                 hwc=self.hparams.model.hwc,
+                                seq_len=self.hparams.model.out_len,
                                 pixel_scale=self.hparams.dataset.preprocess.scale,
-                                device=self.device)
+                                device=torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
         self.validation_loss = torchmetrics.MeanSquaredError()  # TODO: why they are different?
 
         # total_num_steps = (number of epochs) * (number of batches in the train data)
