@@ -48,7 +48,7 @@ class FSSLoss(torch.nn.Module):
             batch = F.hardtanh(self.smooth_factor * (batch - self.threshold), min_val=0, max_val=1)
 
         if self.strategy == "tanh":
-            batch = 0.5 * F.tanh(self.smooth_factor * (batch - self.threshold)) + 0.5
+            batch = 0.5 * torch.tanh(self.smooth_factor * (batch - self.threshold)) + 0.5
 
         return batch
 

@@ -54,7 +54,7 @@ class IMSDataset(Dataset):
         if ims_data_dir is None:
             ims_data_dir = IMS_DATA_DIR
         if isinstance(ims_catalog, str):
-            self.catalog = pd.read_csv(ims_catalog, parse_dates=['time_utc'], low_memory=False)
+            self.catalog = pd.read_csv(ims_catalog, low_memory=False)
         else:
             self.catalog = ims_catalog
         self.ims_data_dir = ims_data_dir

@@ -1,6 +1,28 @@
 import omegaconf as OmegaConf
+from datetime import datetime
 from earthformer.cuboid_transformer.cuboid_transformer import CuboidTransformerModel
 
+def load_dataset_params(dataset_cfg):
+    return dict(
+        start_date=datetime(*dataset_cfg.start_date),
+        end_date=datetime(*dataset_cfg.end_date),
+        img_type=dataset_cfg.img_type,
+        seq_len=dataset_cfg.seq_len,
+        raw_seq_len=dataset_cfg.raw_seq_len,
+        stride=dataset_cfg.stride,
+        time_delta=dataset_cfg.time_delta,
+        raw_time_delta=dataset_cfg.raw_time_delta,
+        layout=dataset_cfg.layout,
+        raw_img_shape=dataset_cfg.raw_img_shape,
+        ims_catalog=dataset_cfg.ims_catalog,
+        ims_data_dir=dataset_cfg.ims_data_dir,
+        grayscale=dataset_cfg.preprocess.grayscale,
+        left=dataset_cfg.preprocess.crop.left,
+        top=dataset_cfg.preprocess.crop.top,
+        width=dataset_cfg.preprocess.crop.width,
+        height=dataset_cfg.preprocess.crop.height,
+        scale=dataset_cfg.preprocess.scale,
+    )
 
 def load_model(model_cfg):
     # ---- compute fields that require arithmetic operations on config values  ---- #

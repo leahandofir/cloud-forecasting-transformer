@@ -1,0 +1,22 @@
+dataset_name: "ims"
+img_type: "MIDDLE_EAST_VIS"
+seq_len: 20
+raw_seq_len: 72
+stride: 12
+layout: "THWC"
+raw_img_shape: [600, 600, 1]
+batch_layout: "NTHWC"
+ims_catalog: "/media/leah/data_vis_OND_JFM/CATALOG.csv"
+ims_data_dir: "/media/leah/data_vis_OND_JFM"
+start_date: [2023, 1, 1]
+end_date: [2023, 4, 1]
+time_delta: 10
+raw_time_delta: 5
+preprocess:
+  grayscale: true
+  crop:
+    top: 200
+    left: 200
+    height: 384
+    width: 384
+  scale: false

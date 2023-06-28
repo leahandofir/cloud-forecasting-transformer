@@ -16,7 +16,7 @@ from earthformer.utils.optim import SequentialLR, warmup_lambda
 from earthformer.utils.utils import get_parameter_names
 from earthformer.utils.apex_ddp import ApexDDPStrategy
 from earthformer.utils.ims.vgg import Vgg16
-from earthformer.utils.ims.load_model import load_model
+from earthformer.utils.ims.load import load_model, load_dataset_params
 from earthformer.utils.ims.fss_loss import FSSLoss
 
 import logging
@@ -410,30 +410,13 @@ class CuboidIMSModule(pl.LightningModule):
                 wandb.log({f"{mode}": {"x": x_images, "y": y_images, "y_hat": y_hat_images}})
 
     def _get_dm(self):
-        dm = IMSLightningDataModule(start_date=datetime(*self.hparams.dataset.start_date),
-                                    # TODO: get date filter for each one instead of a fixed date
+        dm = IMSLightningDataModule(# TODO: get date filter for each one instead of a fixed date
                                     train_val_split_date=datetime(*self.hparams.dataset.train_val_split_date),
                                     train_test_split_date=datetime(*self.hparams.dataset.train_test_split_date),
-                                    end_date=datetime(*self.hparams.dataset.end_date),
                                     batch_size=self.hparams.optim.micro_batch_size,
                                     batch_layout=self.hparams.dataset.batch_layout,
                                     num_workers=self.hparams.optim.num_workers,
-                                    img_type=self.hparams.dataset.img_type,
-                                    seq_len=self.hparams.dataset.seq_len,
-                                    raw_seq_len=self.hparams.dataset.raw_seq_len,
-                                    stride=self.hparams.dataset.stride,
-                                    time_delta=self.hparams.dataset.time_delta,
-                                    raw_time_delta=self.hparams.dataset.raw_time_delta,
-                                    layout=self.hparams.dataset.layout,
-                                    raw_img_shape=self.hparams.dataset.raw_img_shape,
-                                    ims_catalog=self.hparams.dataset.ims_catalog,
-                                    ims_data_dir=self.hparams.dataset.ims_data_dir,
-                                    grayscale=self.hparams.dataset.preprocess.grayscale,
-                                    left=self.hparams.dataset.preprocess.crop.left,
-                                    top=self.hparams.dataset.preprocess.crop.top,
-                                    width=self.hparams.dataset.preprocess.crop.width,
-                                    height=self.hparams.dataset.preprocess.crop.height,
-                                    scale=self.hparams.dataset.preprocess.scale,
+                                    **load_dataset_params(self.hparams.dataset)
                                     )
         dm.prepare_data()
         dm.setup()

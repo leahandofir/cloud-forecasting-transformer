@@ -23,13 +23,14 @@ dataset:
       height: 384
       width: 384
     scale: true
+
 optim:
   total_batch_size: 32
   micro_batch_size: 1
   num_workers: 0
   seed: 0
   method: "adamw"
-  lr: 0.001
+  lr: 0.002
   wd: 0.0
   gradient_clip_val: 1.0
   max_epochs: 10 #TODO: there is an error when this is 1
