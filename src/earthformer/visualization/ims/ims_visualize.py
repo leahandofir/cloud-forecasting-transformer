@@ -2,9 +2,7 @@ import os
 from typing import List
 import numpy as np
 from matplotlib import pyplot as plt
-# from .ims_cmap import get_cmap
-
-# TODO: try to use the cmap
+import pysteps
 
 class IMSVisualize:
     def __init__(self,
@@ -13,6 +11,7 @@ class IMSVisualize:
                  fs: int = None,
                  figsize: tuple = None,
                  plot_stride: int = None,
+                 cmap: str = "default"
                  ):
 
         self.save_dir = save_dir
@@ -30,12 +29,17 @@ class IMSVisualize:
             plot_stride = 2
         self.plot_stride = plot_stride
 
+        if cmap == "pysteps":
+            self.cmap = pysteps.visualization.precipfields.get_colormap(ptype='prob', colorscale='pysteps')[0]
+        if cmap == "default":
+            self.cmap = None
+
     def _plot_seq(self, ax, row, label, seq, seq_len, max_len):
         ax[row][0].set_ylabel(label, fontsize=self.fs)
         for i in range(0, max_len, self.plot_stride):
             if i < seq_len:
-                xt = seq[i, :, :, :] * (self.scale)
-                ax[row][i // self.plot_stride].imshow(xt)
+                xt = seq[i, :, :, :] * self.scale
+                ax[row][i // self.plot_stride].imshow(xt, cmap=self.cmap)
             else:
                 ax[row][i // self.plot_stride].axis('off')
 

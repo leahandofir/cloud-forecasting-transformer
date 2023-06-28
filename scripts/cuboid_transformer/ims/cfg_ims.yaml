@@ -13,7 +13,7 @@ dataset:
   train_val_split_date: [2023, 2, 1]
   train_test_split_date: [2023, 3, 1]
   end_date: [2023, 4, 1]
-  time_delta: 5
+  time_delta: 10
   raw_time_delta: 5
   preprocess:
     grayscale: true
@@ -73,6 +73,7 @@ logging:
     fs: 10
     figsize: [ 24, 8 ]
     plot_stride: 2
+    cmap: "pysteps"
 
 trainer:
   check_val_every_n_epoch: 1

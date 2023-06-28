@@ -153,10 +153,9 @@ class IMSDataset(Dataset):
         raw_seq = self._hdf_files[event['file_name']][self.img_type][event['file_index']]
         raw_seq_start_time = event['time_utc']
 
-        step_idx = self.time_delta // self.raw_time_delta
-        start_idx = seq_idx * self.stride * step_idx  # TODO: check this!
+        start_idx = seq_idx * self.real_stride
         stop_idx = start_idx + self.real_sequence_len
-        slice_sample = slice(start_idx, stop_idx, step_idx)
+        slice_sample = slice(start_idx, stop_idx, self.real_step)
 
         seq_start_time = raw_seq_start_time + datetime.timedelta(minutes=self.raw_time_delta) * start_idx
 
@@ -170,7 +169,7 @@ class IMSDataset(Dataset):
 
     @property
     def num_seq_per_event(self):
-        return 1 + (self.raw_seq_len - self.real_sequence_len) // self.stride
+        return 1 + (self.raw_seq_len - self.real_sequence_len) // self.real_stride
 
     @property
     def total_num_event(self):
@@ -182,7 +181,16 @@ class IMSDataset(Dataset):
 
     @property
     def real_sequence_len(self):
-        return (self.seq_len - 1) * (self.time_delta // self.raw_time_delta) + 1  # counting the frames we skip
+        return (self.seq_len - 1) * self.real_step + 1  # counting the frames we skip
+
+    @property
+    def real_stride(self):
+        return self.stride * self.real_step
+
+    @property
+    def real_step(self):
+        return self.time_delta // self.raw_time_delta
+
 
     def __len__(self):
         return self.total_num_seq

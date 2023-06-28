@@ -136,7 +136,8 @@ class CuboidIMSModule(pl.LightningModule):
                                       scale=self.hparams.dataset.preprocess.scale,
                                       fs=self.hparams.logging.visualize.fs,
                                       figsize=self.hparams.logging.visualize.figsize,
-                                      plot_stride=self.hparams.logging.visualize.plot_stride)
+                                      plot_stride=self.hparams.logging.visualize.plot_stride,
+                                      cmap=self.hparams.logging.visualize.cmap)
 
         # save a copy of the current config inside the logging dir
         cfg_file_target_path = os.path.join(self.curr_version_dir, "cfg.yaml")
