@@ -373,6 +373,7 @@ class CuboidIMSModule(pl.LightningModule):
             pred_seq_list: torch.Tensor,
             mode: str = "train"):
 
+        # determine which examples are candidates to vizualize
         if mode == "train":
             example_data_idx_list = self.hparams.logging.visualize.train_example_data_idx_list
         elif mode == "val":
