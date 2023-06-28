@@ -60,10 +60,13 @@ class CuboidIMSModule(pl.LightningModule):
         self.vgg_model = Vgg16()
         self.fss_loss = FSSLoss(threshold=self.hparams.optim.fss.threshold,
                                 scale=self.hparams.optim.fss.scale,
+                                smooth_factor=self.hparams.optim.fss.smooth_factor,
                                 hwc=self.hparams.model.hwc,
                                 seq_len=self.hparams.model.out_len,
                                 pixel_scale=self.hparams.dataset.preprocess.scale,
+                                strategy=self.hparams.optim.fss.strategy,
                                 device=torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
+
         self.validation_loss = torchmetrics.MeanSquaredError()  # TODO: why they are different?
 
         # total_num_steps = (number of epochs) * (number of batches in the train data)
@@ -345,10 +348,10 @@ class CuboidIMSModule(pl.LightningModule):
 
     def _calc_fss_batch(self, y, y_hat):
         """
-        y and y_hat are from layout NTHWC.
-        calculates accumulated fss for the whole batch.
-        compares between every pair of ground truth frame and predicted frame for every sequence in the batch.
-        if there are more than one channel in the frame, every one of them is compared separately.
+        y and y_hat are of shape NTHWC.
+        Calculates accumulated fss for the whole batch.
+        Compares between every pair of ground truth frame and predicted frame for every sequence in the batch.
+        If there is more than one channel in the frame, every one of the frames is compared separately.
         """
         # TODO: instead of a loop apply in vectors
         pixel_scale = 255 if self.hparams.dataset.preprocess.scale else 1

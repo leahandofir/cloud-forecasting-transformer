@@ -59,7 +59,7 @@ class IMSVisualize:
         nrows = pred_idx + len(pred_seq_list)
         ncols = (max_len - 1) // self.plot_stride + 1
 
-        fig, ax = plt.subplots(nrows=nrows, ncols=ncols, figsize=self.figsize)
+        fig, ax = plt.subplots(nrows=nrows, ncols=ncols, figsize=self.figsize, squeeze=False)
 
         self._plot_seq(ax, 0, "Inputs", in_seq, in_len, max_len)
         if target_seq is not None:

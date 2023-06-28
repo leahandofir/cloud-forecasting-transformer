@@ -5,13 +5,14 @@ import torch.nn.functional as F
 class FSSLoss(torch.nn.Module):
     # TODO: write what every input is suppose to be
     def __init__(self,
-                 threshold: int,
+                 threshold: int, # TODO: maybe we can try discretization of more then 1 value?
                  scale: int,
                  hwc: tuple,
                  seq_len: int,
                  minimize: bool = True,
                  smooth_factor: int = 20,
                  pixel_scale: bool = True,
+                 strategy: str = "tanh",
                  device: str = 'cuda:0'):
         super(FSSLoss, self).__init__()
         self.threshold = threshold
@@ -21,7 +22,8 @@ class FSSLoss(torch.nn.Module):
         self.minimize = -1 if minimize else 0
         self.smooth_factor = smooth_factor
         self.pixel_scale = 255 if pixel_scale else 1
-        self.neighborhood_filter_dim = (self.seq_len * self.hwc[-1], self.seq_len * self.hwc[-1], self.scale, self.scale) # TODO: check
+        self.strategy = strategy
+        self.neighborhood_filter_dim = (self.seq_len * self.hwc[-1], self.seq_len * self.hwc[-1], self.scale, self.scale)
         self.neighborhood_filter_mat = torch.full(self.neighborhood_filter_dim, 1 / self.scale ** 2, device=device)
 
     # warning - heavily assumes layout NTWHC!
@@ -36,7 +38,17 @@ class FSSLoss(torch.nn.Module):
         batch = torch.flatten(batch.moveaxis(-1, -3), start_dim=-4, end_dim=-3)
 
         # 'binarize' data
-        batch = F.hardtanh(self.smooth_factor * (batch - self.threshold), min_val=0, max_val=1)
+        if self.strategy == "hardtanh":
+            # hardtanh is applied element wise. for every coordinate x:
+            #   if x > max_val -> max_val
+            #   if x < min_val -> min_val
+            #   else x
+            # batch - self.threshold gives us <0 for every pixel <threshold and >=0 for every pixel >=threshold.
+            # applying the smooth factor makes the values between 0 and 1 to potentially become bigger than 1 so the discretization is "sharper".
+            batch = F.hardtanh(self.smooth_factor * (batch - self.threshold), min_val=0, max_val=1)
+
+        if self.strategy == "tanh":
+            batch = 0.5 * F.tanh(self.smooth_factor * (batch - self.threshold)) + 0.5
 
         return batch
 

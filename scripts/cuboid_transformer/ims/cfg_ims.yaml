@@ -50,6 +50,8 @@ optim:
   fss:
     threshold: 160
     scale: 10
+    smooth_factor: 40
+    strategy: "tanh"
   loss_coefficients:
     mse: 0.5
     perceptual: 0.25
@@ -79,7 +81,7 @@ trainer:
   accelerator: gpu
   fss:
     threshold: 160
-    scale: 30
+    scale: 10
 
 model:
   model_name: cuboid_attention_model
