@@ -9,3 +9,4 @@ pytorch-extension==0.2
 pytorch-lightning==1.7.7
 torch==1.12.1
 torchvision==0.13.1
+pysteps
