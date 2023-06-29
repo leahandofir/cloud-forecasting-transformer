@@ -10,6 +10,15 @@
 
 ## Installation
 ### Training
+Install CUDA (We had CUDA 11.7 or 11.8 installed): https://developer.nvidia.com/cuda-downloads
+Clone the repository and install requirements:
+```
+git clone https://github.com/leahandofir/cloud-forecasting-transformer.git
+cd cloud-forecasting-transformer
+pip install -r train_requirements.txt
+python3 -m pip install -U -e . --no-build-isolation --extra-index-url --trusted-host
+```
+
 ### Inferencing
 Clone the repository and install requirements:
 ```
