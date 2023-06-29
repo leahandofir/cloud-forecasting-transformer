@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import cv2, os, torch
 import numpy as np
 from omegaconf import OmegaConf
+from datetime import datetime
 
 from earthformer.utils.ims.load import load_dataset_params
 from earthformer.datasets.ims.ims_dataset import IMSDataset
@@ -16,18 +17,17 @@ class IMSHistogram:
         # https://docs.opencv.org/3.1.0/d1/db7/tutorial_py_histogram_begins.html
         if idx_sample is None:
             sample_indices = np.random.choice(range(len(self.dataset)), size=sample_count, replace=False)
-            # reshape to (#samples * T)xHxWxC
+            # reshape to (#samples * T * H)xWxC
             seq_samples = torch.flatten(torch.stack([self.dataset[i][1] for i in sample_indices]), start_dim=0, end_dim=1)
         else:
             seq_samples = self.dataset[idx_sample][1]
 
         seq_samples = [img for img in seq_samples.numpy()]
-        
-        # plot histogram, data is of shape (#samples * T)xHxWxC
+
         hist = cv2.calcHist(images=seq_samples,
                             channels=[0],
                             mask=None,
                             histSize=[256],
                             ranges=[0,256])
         plt.plot(hist)
-        plt.savefig(os.path.join(output_path, f"hist_samples={sample_count}_{self.cfg.img_type}.png"))
+        plt.savefig(os.path.join(output_path, f"hist_samples={sample_count}_{self.cfg.img_type}_{datetime(*self.cfg.start_date).strftime('%Y%m%d')}_{datetime(*self.cfg.end_date).strftime('%Y%m%d')}.png"))
