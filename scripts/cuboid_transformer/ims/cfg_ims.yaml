@@ -1,9 +1,9 @@
 dataset:
   dataset_name: "ims"
   img_type: "MIDDLE_EAST_IR"
-  seq_len: 20
+  seq_len: 10
   raw_seq_len: 72
-  stride: 12
+  stride: 5
   layout: "THWC"
   raw_img_shape: [600, 600, 1]
   batch_layout: "NTHWC"
@@ -46,7 +46,11 @@ optim:
   # checkpoints
   save_top_k: 1
   # loss
+  lpips:
+    enabled: true
+    net: "vgg"
   vgg:
+    enabled: false
     layer: relu4_3
   fss:
     threshold: 160
@@ -55,8 +59,9 @@ optim:
     strategy: "tanh"
   loss_coefficients:
     mse: 0.5
-    perceptual: 0.25
+    vgg: 0.0
     fss: 0.25
+    lpips: 0.25
 
 logging:
   logging_prefix: "Cuboid_IMS"
@@ -87,8 +92,8 @@ trainer:
 
 model:
   model_name: cuboid_attention_model
-  in_len: 12
-  out_len: 8
+  in_len: 5
+  out_len: 5
   hwc: [384, 384, 1]
   base_units: 128
   block_units: null

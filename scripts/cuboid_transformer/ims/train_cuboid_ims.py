@@ -8,6 +8,7 @@ from torch.optim import AdamW
 from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR
 from torch.nn import functional as F
 import torchmetrics
+import lpips
 
 from earthformer.datasets.ims.ims_datamodule import IMSLightningDataModule
 from earthformer.visualization.ims.ims_visualize import IMSVisualize
@@ -18,6 +19,7 @@ from earthformer.utils.apex_ddp import ApexDDPStrategy
 from earthformer.utils.ims.vgg import Vgg16
 from earthformer.utils.ims.load import load_model, load_dataset_params
 from earthformer.utils.ims.fss_loss import FSSLoss
+from earthformer.utils.ims.lpips import preprocess as lpips_preprocess
 
 import logging
 import wandb
@@ -57,7 +59,8 @@ class CuboidIMSModule(pl.LightningModule):
 
         # load cuboid attention model
         self.cuboid_attention_model = load_model(model_cfg=self.hparams.model)
-        self.vgg_model = Vgg16()
+        self.vgg_model = Vgg16() if self.hparams.optim.vgg.enabled else None
+        self.lpips_loss = lpips.LPIPS(net=self.hparams.optim.lpips.net) if self.hparams.optim.lpips.enabled else None
         self.fss_loss = FSSLoss(threshold=self.hparams.optim.fss.threshold,
                                 scale=self.hparams.optim.fss.scale,
                                 smooth_factor=self.hparams.optim.fss.smooth_factor,
@@ -76,32 +79,6 @@ class CuboidIMSModule(pl.LightningModule):
 
         # create logging directories and set up logging
         self._init_logging(logging_dir)
-
-    def perceptual_loss(self, y, y_hat):
-        """
-        the shape of y, y_hat is NTHWC.
-        the calculated loss is the average of all the samples in that batch.
-        """
-        # TODO: the following code requires final testing
-        # if grayscale, duplicate all channels 3 times
-        if self.hparams.model.hwc[-1] == 1:
-            y = torch.repeat_interleave(y, 3, dim=-1)
-            y_hat = torch.repeat_interleave(y_hat, 3, dim=-1)
-
-        # flatten the batch into one long sequence,
-        # which can be interpreted as a batch of images
-        y = y.flatten(end_dim=1)
-        y_hat = y_hat.flatten(end_dim=1)
-
-        # change dimensions to be TCHW
-        y = y.permute(0, 3, 1, 2)
-        y_hat = y_hat.permute(0, 3, 1, 2)
-
-        y = getattr(self.vgg_model(y), self.hparams.optim.vgg.layer)
-        y_hat = getattr(self.vgg_model(y_hat), self.hparams.optim.vgg.layer)
-
-        loss = F.mse_loss(y, y_hat)  # computes mean over all pixels
-        return loss
 
     def _init_logging(self, logging_dir: str = None):
         # creates logging directories and adds their path as data members
@@ -167,11 +144,23 @@ class CuboidIMSModule(pl.LightningModule):
         y_hat = self(x)
 
         mse_loss = F.mse_loss(y, y_hat)
-        perceptual_loss = self.perceptual_loss(y, y_hat)
+
+        if self.hparams.optim.vgg.enabled:
+            vgg_loss = self.vgg_model.loss(y, y_hat, layer=self.hparams.optim.vgg.layer)
+        else:
+            vgg_loss = 0
+
+        if self.hparams.optim.lpips.enabled:
+            # https://github.com/richzhang/PerceptualSimilarity/blob/master/test_network.py
+            lpips_loss = self.lpips_loss(lpips_preprocess(y), lpips_preprocess(y_hat)).mean()
+        else:
+            lpips_loss = 0
+
         fss_loss = self.fss_loss(target=y, output=y_hat)
         loss = self.hparams.optim.loss_coefficients.mse * mse_loss + \
-               self.hparams.optim.loss_coefficients.perceptual * perceptual_loss + \
-               self.hparams.optim.loss_coefficients.fss * fss_loss
+               self.hparams.optim.loss_coefficients.vgg * vgg_loss + \
+               self.hparams.optim.loss_coefficients.fss * fss_loss + \
+               self.hparams.optim.loss_coefficients.lpips * lpips_loss
 
         data_idx = int(batch_idx * self.hparams.optim.micro_batch_size)
 
@@ -185,8 +174,9 @@ class CuboidIMSModule(pl.LightningModule):
 
         self.log('train_loss_step', loss, prog_bar=True, on_step=True, on_epoch=False)
         self.log('train_mse_loss_step', mse_loss, on_step=True, on_epoch=False)
-        self.log('train_perceptual_loss_step', perceptual_loss, on_step=True, on_epoch=False)
+        self.log('train_vgg_loss_step', vgg_loss, on_step=True, on_epoch=False)
         self.log('train_fss_loss_step', fss_loss, on_step=True, on_epoch=False)
+        self.log('train_lpips_loss_step', lpips_loss, on_step=True, on_epoch=False)
         return loss
 
     def predict_step(self, batch, batch_idx):
