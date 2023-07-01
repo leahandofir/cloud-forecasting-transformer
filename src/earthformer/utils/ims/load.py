@@ -101,3 +101,11 @@ def load_model(model_cfg):
         z_init_method=model_cfg["z_init_method"],
         checkpoint_level=model_cfg["checkpoint_level"],
     )
+
+def get_x_y_from_batch(batch, in_len, out_len):
+    # batch.shape is (times, sample) where times shape is S (list of integer timestamps)
+    # and sample shape is (T, H, W, C)
+    start_time, sample = batch
+
+    return start_time, sample[:, :in_len, :, :, :], \
+           sample[:, in_len:(in_len + out_len), :, :, :]

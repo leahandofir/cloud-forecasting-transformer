@@ -68,9 +68,11 @@ logging:
   monitor_lr: true
   monitor_device: false
   track_grad_norm: -1
-  use_tensorbaord: true
-  use_csv: true
+  use_tensorbaord: false
+  use_csv: false
   use_wandb: true
+  wandb:
+    project: "cloud-forecasting-transformer"
   visualize:
     train_example_data_idx_list: [0, 10, 20 ,50]
     val_example_data_idx_list: [0, 10, 20, 50]
