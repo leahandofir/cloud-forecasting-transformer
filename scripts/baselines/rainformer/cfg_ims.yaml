@@ -1,0 +1,85 @@
+dataset:
+  dataset_name: "ims"
+  img_type: "MIDDLE_EAST_IR"
+  seq_len: 18
+  raw_seq_len: 72
+  stride: 9
+  layout: "THWC"
+  raw_img_shape: [600, 600, 1]
+  batch_layout: "NTHWC"
+  ims_catalog: null
+  ims_data_dir: null
+  start_date: [2023, 1, 1]
+  train_val_split_date: [2023, 2, 1]
+  train_test_split_date: [2023, 3, 1]
+  end_date: [2023, 4, 1]
+  time_delta: 10
+  raw_time_delta: 5
+  preprocess:
+    grayscale: true
+    crop:
+      top: 200
+      left: 200
+      height: 288
+      width: 288
+    scale: false
+
+optim:
+  total_batch_size: 32
+  micro_batch_size: 1
+  num_workers: 0
+  seed: 0
+  method: "adamw"
+  lr: 0.001
+  wd: 0.0
+  gradient_clip_val: 1.0
+  max_epochs: 10
+  # scheduler
+  lr_scheduler_mode: "plateau"
+  scheduler:
+    mode: "min"
+    factor: 0.1
+    patience: 5
+  # checkpoints
+  save_top_k: 1
+
+logging:
+  logging_prefix: "Rainformer_IMS"
+  monitor_lr: true
+  monitor_device: false
+  track_grad_norm: -1
+  use_tensorbaord: false
+  use_csv: false
+  use_wandb: true
+  wandb:
+    project: "rainformer"
+  visualize:
+    train_example_data_idx_list: [0, 10, 20 ,50]
+    val_example_data_idx_list: [0, 10, 20, 50]
+    test_example_data_idx_list: [0, 80, 160, 240, 320, 400]
+    eval_example_only: false
+    fs: 10
+    figsize: [ 24, 8 ]
+    plot_stride: 2
+    cmap: "pysteps"
+
+trainer:
+  check_val_every_n_epoch: 1
+  log_step_ratio: 0.001
+  precision: 32
+  accelerator: gpu
+
+model:
+  model_name: "rainformer_model"
+  in_len: 9
+  out_len: 9
+  input_channel: 9
+  hidden_dim: 96
+  downscaling_factors: [4, 2, 2, 2]
+  layers: [2, 2, 2, 2]
+  heads: [3, 6, 12, 24]
+  head_dim: 32
+  window_size: 9
+  relative_pos_embedding: true
+
+

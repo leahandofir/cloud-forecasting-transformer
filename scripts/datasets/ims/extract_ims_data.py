@@ -1,7 +1,8 @@
 import pandas as pd
 from pathlib import Path
 from datetime import datetime, timedelta
-import h5py, png, PIL
+import h5py, png
+from PIL import Image
 import numpy as np
 import os, json
 
@@ -260,7 +261,7 @@ class IMSH5():
                 pixels = np.array([list(row) for row in raw_pixels], dtype="uint8").reshape((*self.shape, 4))
 
             elif self.img_format == 'jpeg':
-                raw_img = PIL.Image.open(frame_path)
+                raw_img = Image.open(frame_path)
                 pixels = np.array(raw_img)
 
             pixels = pixels[self.slice_x, self.slice_y, :]
