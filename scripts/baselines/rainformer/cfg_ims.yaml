@@ -20,8 +20,8 @@ dataset:
     crop:
       top: 200
       left: 200
-      height: 288
-      width: 288
+      height: 384
+      width: 384
     scale: false
 
 optim:
@@ -79,7 +79,5 @@ model:
   layers: [2, 2, 2, 2]
   heads: [3, 6, 12, 24]
   head_dim: 32
-  window_size: 9
+  window_size: 12
   relative_pos_embedding: true
-
-
