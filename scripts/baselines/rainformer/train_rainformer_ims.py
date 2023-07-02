@@ -33,7 +33,7 @@ class RainformerIMSModule(IMSModule):
             relative_pos_embedding=self.hparams.model.relative_pos_embedding)
 
         self.training_loss = BMAEloss()
-        self.validation_loss = torchmetrics.MeanSquaredError()
+        self.validation_loss = torchmetrics.MeanSquaredError() # TODO: this is not right!
 
     def forward(self, x):
         return self.rainformer_model(x)
