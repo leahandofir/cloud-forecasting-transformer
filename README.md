@@ -54,3 +54,7 @@ Unless otherwise noted, you may download and copy content from the EUMETSAT webs
 Earthformer: https://github.com/amazon-science/earth-forecasting-transformer
 
 SEVIR: https://sevir.mit.edu/
+
+## Baselines
+PredRNN: https://github.com/thuml/predrnn-pytorch
+Rainformer: https://github.com/Zjut-MultimediaPlus/Rainformer
