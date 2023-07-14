@@ -104,7 +104,7 @@ def load_model(model_cfg):
 
 def get_x_y_from_batch(batch, in_len, out_len):
     # batch.shape is (times, sample) where times shape is S (list of integer timestamps)
-    # and sample shape is (T, H, W, C)
+    # and sample shape is (N, T, H, W, C)
     start_time, sample = batch
 
     return start_time, sample[:, :in_len, :, :, :], \

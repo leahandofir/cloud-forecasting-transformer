@@ -1,0 +1,92 @@
+dataset:
+  dataset_name: "ims"
+  img_type: "MIDDLE_EAST_IR"
+  seq_len: 20 #total_len
+  raw_seq_len: 72
+  stride: 9
+  layout: "THWC"
+  raw_img_shape: [600, 600, 1]
+  batch_layout: "NTHWC"
+  ims_catalog: null
+  ims_data_dir: null
+  start_date: [2023, 1, 1]
+  train_val_split_date: [2023, 2, 1]
+  train_test_split_date: [2023, 3, 1]
+  end_date: [2023, 4, 1]
+  time_delta: 10
+  raw_time_delta: 5
+  preprocess:
+    grayscale: true
+    crop:
+      top: 200
+      left: 200
+      height: 64
+      width: 64
+    scale: false
+
+optim:
+  total_batch_size: 8
+  micro_batch_size: 1
+  num_workers: 0
+  seed: 0
+  method: "adamw"
+  lr: 0.001
+  wd: 0.0
+  gradient_clip_val: 1.0
+  max_epochs: 10
+  # checkpoints
+  save_top_k: 1
+
+logging:
+  logging_prefix: "PredRNN_IMS"
+  monitor_lr: true
+  monitor_device: false
+  track_grad_norm: -1
+  use_tensorbaord: false
+  use_csv: false
+  use_wandb: true
+  wandb:
+    project: "predrnn"
+  visualize:
+    train_example_data_idx_list: [0, 10, 20 ,50]
+    val_example_data_idx_list: [0, 10, 20, 50]
+    test_example_data_idx_list: [0, 80, 160, 240, 320, 400]
+    eval_example_only: false
+    fs: 10
+    figsize: [ 24, 8 ]
+    plot_stride: 2
+    cmap: "pysteps"
+
+trainer:
+  check_val_every_n_epoch: 1
+  log_step_ratio: 0.001
+  precision: 32
+  accelerator: gpu
+
+model:
+  model_name: "predrnn"
+  in_len: 10 # must have params.
+  out_len: 10 # must have params.
+  input_length: 10
+  total_length: 20
+  img_channel: 1
+  img_width: 64
+  num_hidden: "64, 64, 64, 64"
+  filter_size: 5
+  stride: 1
+  patch_size: 4
+  layer_norm: 1
+  decouple_beta: 0.1
+  injection_action: "concat"
+  conv_on_input: 0
+  res_on_conv: 0
+  num_action_ch: 4
+  reverse_input: 1
+  reverse_scheduled_sampling: 0
+  r_sampling_step_1: 25000
+  r_sampling_step_2: 50000
+  r_exp_alpha: 5000
+  scheduled_sampling: 1
+  sampling_stop_iter: 50000
+  sampling_start_value: 1.0
+  sampling_changing_rate: 0.00002

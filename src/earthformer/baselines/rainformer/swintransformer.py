@@ -4,7 +4,7 @@ import torch
 from torch import nn, einsum
 import numpy as np
 from einops import rearrange, repeat
-from earthformer.baselines.rainformer.attention import CASA
+from earthformer.baselines.rainformer.casa import CASA
 import torch.nn.functional as F
 
 class Flatten(nn.Module):

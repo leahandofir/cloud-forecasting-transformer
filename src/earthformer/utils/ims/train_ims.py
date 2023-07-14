@@ -21,7 +21,7 @@ import logging
 import warnings
 import argparse
 
-FIRST_VERSION_NUM = 1
+FIRST_VERSION_NUM = 0
 
 class IMSModule(pl.LightningModule):
     def __init__(self,

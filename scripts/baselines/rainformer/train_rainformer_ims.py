@@ -5,7 +5,7 @@ import torchmetrics
 
 from earthformer.baselines.rainformer.rainformer import Net
 from earthformer.baselines.rainformer.loss import BMAEloss
-from earthformer.utils.ims.load import get_x_y_from_batch
+from earthformer.utils.ims.load_ims import get_x_y_from_batch
 from earthformer.config import cfg
 from earthformer.utils.ims.train_ims import IMSModule, main
 

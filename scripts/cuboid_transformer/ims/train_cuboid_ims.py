@@ -7,10 +7,10 @@ import lpips
 
 from earthformer.utils.optim import SequentialLR, warmup_lambda
 from earthformer.utils.utils import get_parameter_names
-from earthformer.utils.ims.vgg import Vgg16
-from earthformer.utils.ims.load import load_model, get_x_y_from_batch
-from earthformer.utils.ims.fss_loss import FSSLoss
-from earthformer.utils.ims.lpips import preprocess as lpips_preprocess
+from earthformer.utils.ims.vgg_ims import Vgg16
+from earthformer.utils.ims.load_ims import load_model, get_x_y_from_batch
+from earthformer.utils.ims.fss_ims import FSSLoss
+from earthformer.utils.ims.lpips_ims import preprocess as lpips_preprocess
 from earthformer.utils.ims.train_ims import IMSModule, main
 
 import numpy as np
