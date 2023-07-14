@@ -20,6 +20,12 @@ pip install -r train_requirements.txt
 python3 -m pip install -U -e . --no-build-isolation --extra-index-url --trusted-host
 ```
 
+Set up wandb if used:
+```
+pip install wandb
+wandb login
+```
+
 ### Inferencing
 Clone the repository and install requirements:
 ```
