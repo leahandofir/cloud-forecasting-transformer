@@ -18,7 +18,7 @@ class IMSSkillScore(Metric):
                  threshold_weights: Sequence[int] = None,
                  metrics_list: Sequence[str] = ("csi", "mae", "mse"),
                  ):
-        super().__init__(Metric)
+        super().__init__()
         self.scale = scale
         self.threshold_count = len(threshold_list)
         if threshold_weights is None:
@@ -38,7 +38,7 @@ class IMSSkillScore(Metric):
         self.add_state("fas",
                        default=torch.zeros(self.threshold_count),
                        dist_reduce_fx="sum")
-        self.add_state("total_nomel",
+        self.add_state("total_numel",
                        default=torch.tensor(0),
                        dist_reduce_fx="sum")
         self.add_state("sum_abs_error",
@@ -53,7 +53,7 @@ class IMSSkillScore(Metric):
         csi_per_threshold = torch.zeros(self.threshold_count)
         for i in range(self.threshold_count):
             csi_per_threshold[i] = self.hits[i] / (self.hits[i] + self.misses[i] + self.fas[i])
-        return 1 - csi_per_threshold * self.threshold_weights # because it is going to be minimized
+        return 1 - torch.sum(csi_per_threshold * self.threshold_weights) # because it is going to be minimized
 
     def mae(self):
         return self.sum_abs_error / self.total_numel
@@ -84,17 +84,20 @@ class IMSSkillScore(Metric):
             self.misses[i] += misses
             self.fas[i] += fas
 
-        self.total_nomel += target.numel()
+        self.total_numel += target.numel()
         self.sum_abs_error += torch.sum(torch.abs(prediction - target))
         self.sum_squared_error += torch.sum((prediction - target)**2)
 
     def compute(self):
+        """
+        Returns a torch.tensor with a score to each metric.
+        """
         metrics_dict = {
             'csi': self.csi,
             'mae': self.mae,
             'mse': self.mse}
 
-        scores = {}
-        for metric in self.metrics_list:
-            scores[metric] = metrics_dict[metric]()
+        scores = torch.zeros(len(self.metrics_list))
+        for i, metric in enumerate(self.metrics_list):
+            scores[i] = metrics_dict[metric]()
         return scores

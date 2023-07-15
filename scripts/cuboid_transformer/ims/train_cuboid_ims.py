@@ -156,12 +156,14 @@ class CuboidIMSModule(IMSModule):
 
         loss = self.validation_loss(y_hat, y)
         self.log('val_loss_step', torch.mean(loss), prog_bar=True, on_step=True, on_epoch=False)
-        self.log('val_metrics_step', loss, on_step=True, on_epoch=False)
+        metrics_scores = dict(zip([f"val_step_{s}" for s in self.hparams.optim.skill_score.metrics_list], self._torch_to_numpy(loss)))
+        self.log_dict(metrics_scores, on_step=True, on_epoch=False)
 
     def validation_epoch_end(self, outputs):
         epoch_loss = self.validation_loss.compute()
         self.log("val_loss_epoch", torch.mean(epoch_loss), sync_dist=True, on_epoch=True)
-        self.log('val_metrics_epoch', epoch_loss, sync_dist=True, on_epoch=True)
+        metrics_scores = dict(zip([f"val_epoch_{s}" for s in self.hparams.optim.skill_score.metrics_list], self._torch_to_numpy(epoch_loss)))
+        self.log_dict(metrics_scores, sync_dist=True, on_epoch=True)
         self.validation_loss.reset()
 
     def _calc_fss_batch(self, y, y_hat):

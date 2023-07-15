@@ -9,7 +9,7 @@ from earthformer.datasets.ims.ims_datamodule import IMSLightningDataModule
 from earthformer.visualization.ims.ims_visualize import IMSVisualize
 from earthformer.config import cfg
 from earthformer.utils.apex_ddp import ApexDDPStrategy
-from earthformer.utils.ims.load import  load_dataset_params
+from earthformer.utils.ims.load_ims import load_dataset_params
 
 import wandb
 from shutil import copyfile
@@ -265,7 +265,7 @@ def main(ims_module):
 
     # model
     l_module = ims_module(logging_dir=args.logging_dir,
-                               args=args.__dict__)
+                          args=args.__dict__)
     # data
     dm = l_module.dm
 
