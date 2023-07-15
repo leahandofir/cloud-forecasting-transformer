@@ -1,7 +1,7 @@
 from pytorch_lightning import seed_everything
 import pytorch_lightning as pl
 from pytorch_lightning import loggers as pl_loggers
-from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor, DeviceStatsMonitor
+from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor, DeviceStatsMonitor, EarlyStopping
 
 import torch
 
@@ -107,14 +107,7 @@ class IMSModule(pl.LightningModule):
         """
         Default kwargs used when initializing pl.Trainer
         """
-        # TODO: early stopping not implemented currently
-        # because it depends on SEVIRSkillScore objects
-        # if self.hparams.optim.early_stop:
-        #     callbacks += [EarlyStopping(monitor="valid_loss_epoch",
-        #                                 min_delta=0.0,
-        #                                 patience=self.oc.optim.early_stop_patience,
-        #                                 verbose=False,
-        #                                 mode=self.oc.optim.early_stop_mode), ]
+        callbacks = []
 
         # ModelCheckpoint allows fine-grained control over checkpointing
         checkpoint_callback = ModelCheckpoint(
@@ -126,8 +119,15 @@ class IMSModule(pl.LightningModule):
             dirpath=self.checkpoints_dir
         )
 
-        callbacks = []
         callbacks += [checkpoint_callback, ]
+
+        if self.hparams.optim.early_stop:
+            early_callback = EarlyStopping(monitor="val_loss_epoch",
+                                           patience=self.hparams.optim.early_stop_patience,
+                                           verbose=False,
+                                           mode=self.hparams.optim.early_stop_mode)
+            callbacks += [early_callback, ]
+
         if self.hparams.logging.monitor_lr:
             callbacks += [LearningRateMonitor(logging_interval='step'), ]
         if self.hparams.logging.monitor_device:
@@ -230,8 +230,7 @@ class IMSModule(pl.LightningModule):
                 wandb.log({f"{mode}": {"x": x_images, "y": y_images, "y_hat": y_hat_images}})
 
     def _get_dm(self):
-        dm = IMSLightningDataModule(# TODO: get date filter for each one instead of a fixed date
-                                    train_val_split_date=datetime(*self.hparams.dataset.train_val_split_date),
+        dm = IMSLightningDataModule(train_val_split_date=datetime(*self.hparams.dataset.train_val_split_date),
                                     train_test_split_date=datetime(*self.hparams.dataset.train_test_split_date),
                                     batch_size=self.hparams.optim.micro_batch_size,
                                     batch_layout=self.hparams.dataset.batch_layout,

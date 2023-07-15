@@ -101,6 +101,7 @@ def schedule_sampling(eta, itr, batch_size, args):
                                   args.patch_size ** 2 * args.img_channel))
     return eta, real_input_flag
 
+# TODO: this!
 # def test(model, test_input_handle, configs, itr):
 #     print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 'test...')
 #     test_input_handle.begin(do_shuffle=False)

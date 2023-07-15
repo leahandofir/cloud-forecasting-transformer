@@ -39,7 +39,6 @@ class PredRNNIMSModule(IMSModule):
         start_time, seq = batch
         seq = reshape_patch(seq, self.hparams.model.patch_size)
         itr = (self.current_epoch + 1) * batch_idx + 1
-        print(itr) #delete
 
         if self.hparams.model.reverse_scheduled_sampling == 1:
             real_input_flag = reserve_schedule_sampling_exp(itr=itr,

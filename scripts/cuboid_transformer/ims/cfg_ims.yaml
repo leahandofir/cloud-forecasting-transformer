@@ -1,7 +1,7 @@
 dataset:
   dataset_name: "ims"
   img_type: "MIDDLE_EAST_IR"
-  seq_len: 10
+  seq_len: 25
   raw_seq_len: 72
   stride: 5
   layout: "THWC"
@@ -15,6 +15,8 @@ dataset:
   end_date: [2023, 4, 1]
   time_delta: 10
   raw_time_delta: 5
+  shuffle: true
+  shuffle_seed: 1
   preprocess:
     grayscale: true
     crop:
@@ -27,7 +29,7 @@ dataset:
 optim:
   total_batch_size: 32
   micro_batch_size: 1
-  num_workers: 0
+  num_workers: 24
   seed: 0
   method: "adamw"
   lr: 0.002
@@ -42,9 +44,13 @@ optim:
   # early stopping
   early_stop: true
   early_stop_mode: "min"
-  early_stop_patience: 20
+  early_stop_patience: 10
   # checkpoints
   save_top_k: 1
+  skill_score:
+    metrics_list: [ 'csi', 'mae' ]
+    threshold_list: [ 16, 74, 133, 160, 181, 219 ]
+    threshold_weights: null
   # loss
   lpips:
     enabled: true
@@ -94,8 +100,8 @@ trainer:
 
 model:
   model_name: cuboid_attention_model
-  in_len: 5
-  out_len: 5
+  in_len: 13
+  out_len: 12
   hwc: [384, 384, 1]
   base_units: 128
   block_units: null

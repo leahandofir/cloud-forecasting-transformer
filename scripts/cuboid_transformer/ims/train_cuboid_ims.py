@@ -2,7 +2,6 @@ import torch
 from torch.optim import AdamW
 from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR
 from torch.nn import functional as F
-import torchmetrics
 import lpips
 
 from earthformer.utils.optim import SequentialLR, warmup_lambda
@@ -12,6 +11,7 @@ from earthformer.utils.ims.load_ims import load_model, get_x_y_from_batch
 from earthformer.utils.ims.fss_ims import FSSLoss
 from earthformer.utils.ims.lpips_ims import preprocess as lpips_preprocess
 from earthformer.utils.ims.train_ims import IMSModule, main
+from earthformer.metrics.ims import IMSSkillScore
 
 import numpy as np
 import os, sys
@@ -39,7 +39,10 @@ class CuboidIMSModule(IMSModule):
                                 strategy=self.hparams.optim.fss.strategy,
                                 device=torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
 
-        self.validation_loss = torchmetrics.MeanSquaredError()  # TODO: why they are different?
+        self.validation_loss = IMSSkillScore(scale=self.hparams.dataset.preprocess.scale,
+                                             threshold_list=self.hparams.optim.skill_score.threshold_list,
+                                             threshold_weights=self.hparams.optim.skill_score.threshold_weights,
+                                             metrics_list=self.hparams.optim.skill_score.metrics_list,)
 
     def forward(self, x):
         return self.cuboid_attention_model(x)
@@ -152,14 +155,13 @@ class CuboidIMSModule(IMSModule):
                                 mode="val")
 
         loss = self.validation_loss(y_hat, y)
-        self.log('val_loss_step', loss, prog_bar=True, on_step=True, on_epoch=False)
-
-        fss_batch = self._calc_fss_batch(y, y_hat)
-        self.log('val_fss_step', fss_batch, on_step=True, on_epoch=False)
+        self.log('val_loss_step', torch.mean(loss), prog_bar=True, on_step=True, on_epoch=False)
+        self.log('val_metrics_step', loss, on_step=True, on_epoch=False)
 
     def validation_epoch_end(self, outputs):
         epoch_loss = self.validation_loss.compute()
-        self.log("val_loss_epoch", epoch_loss, sync_dist=True, on_epoch=True)
+        self.log("val_loss_epoch", torch.mean(epoch_loss), sync_dist=True, on_epoch=True)
+        self.log('val_metrics_epoch', epoch_loss, sync_dist=True, on_epoch=True)
         self.validation_loss.reset()
 
     def _calc_fss_batch(self, y, y_hat):
@@ -169,7 +171,6 @@ class CuboidIMSModule(IMSModule):
         Compares between every pair of ground truth frame and predicted frame for every sequence in the batch.
         If there is more than one channel in the frame, every one of the frames is compared separately.
         """
-        # TODO: instead of a loop apply in vectors
         pixel_scale = 255 if self.hparams.dataset.preprocess.scale else 1
         fss = fss_init(self.hparams.trainer.fss.threshold, self.hparams.trainer.fss.scale)
         for i in range(self.hparams.optim.micro_batch_size):
@@ -179,6 +180,7 @@ class CuboidIMSModule(IMSModule):
                     fss_accum(fss, y_sample[j, :, :, c] * pixel_scale, y_hat_sample[j, :, :, c] * pixel_scale)
 
         return fss_compute(fss)
+
 
 if __name__ == "__main__":
     main(CuboidIMSModule)

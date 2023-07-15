@@ -13,7 +13,7 @@ class FSSLoss(torch.nn.Module):
                  smooth_factor: int = 20,
                  pixel_scale: bool = True,
                  strategy: str = "tanh",
-                 device: str = 'cuda:0'):
+                 device: torch.device = torch.device('cuda')):
         super(FSSLoss, self).__init__()
         self.threshold = threshold
         self.scale = scale

@@ -6,18 +6,15 @@ import torch
 def reshape_patch(img_tensor, patch_size):
     assert 5 == img_tensor.ndim
     batch_size, seq_length, img_height, img_width, num_channels = img_tensor.shape
-    print(img_tensor.shape) #delete
     a = torch.reshape(img_tensor, [batch_size, seq_length,
                                    img_height // patch_size, patch_size,
                                    img_width // patch_size, patch_size,
                                    num_channels])
-    print(a.shape) #delete
     b = torch.permute(a, [0, 1, 2, 4, 3, 5, 6])
     patch_tensor = torch.reshape(b, [batch_size, seq_length,
                                      img_height // patch_size,
                                      img_width // patch_size,
                                      patch_size * patch_size * num_channels])
-    print(patch_tensor.shape) #delete
     return patch_tensor
 
 

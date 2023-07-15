@@ -1,4 +1,3 @@
-# TODO: maybe it is more efficient to read subsequent samples.
 # TODO: verify that we took every important thing from SEVIR code
 
 import torch
@@ -60,7 +59,6 @@ class IMSDataset(Dataset):
         self.ims_data_dir = ims_data_dir
 
         # data parameters
-        # TODO: consider including time filter.
         self.raw_seq_len = raw_seq_len
         assert img_type in IMS_IMG_TYPES, 'Invalid image type!'
         self.img_type = img_type
@@ -159,7 +157,7 @@ class IMSDataset(Dataset):
 
         seq_start_time = raw_seq_start_time + datetime.timedelta(minutes=self.raw_time_delta) * start_idx
 
-        seq = raw_seq[slice_sample, :, :, :]  # TODO: allow layout different then THWC
+        seq = raw_seq[slice_sample, :, :, :]
         return seq_start_time, seq
 
     def close(self):
