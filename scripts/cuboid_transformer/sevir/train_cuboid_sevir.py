@@ -177,7 +177,8 @@ class CuboidSEVIRPLModule(pl.LightningModule):
             metrics_list=self.metrics_list,
             eps=1e-4,)
 
-    def configure_save(self, cfg_file_path=None):
+    def configure_save(self,
+                       cfg_file_path=None):
         self.save_dir = os.path.join(exps_dir, self.save_dir)
         os.makedirs(self.save_dir, exist_ok=True)
         self.scores_dir = os.path.join(self.save_dir, 'scores')

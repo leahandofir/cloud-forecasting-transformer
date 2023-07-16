@@ -19,7 +19,7 @@ class FSSLoss(torch.nn.Module):
         self.scale = scale
         self.hwc = hwc
         self.seq_len = seq_len
-        self.minimize = -1 if minimize else 0
+        self.minimize = minimize
         self.smooth_factor = smooth_factor
         self.pixel_scale = 255 if pixel_scale else 1
         self.strategy = strategy
@@ -72,4 +72,5 @@ class FSSLoss(torch.nn.Module):
         fss_per_batch = (1 - numerator / denominator).mean(dim=-1)
 
         # return the average loss over all batches, multiply by -1 if we want to minimize
-        return self.minimize * fss_per_batch.mean()
+        fss_avg = fss_per_batch.mean()
+        return 1 - fss_avg if self.minimize else fss_avg

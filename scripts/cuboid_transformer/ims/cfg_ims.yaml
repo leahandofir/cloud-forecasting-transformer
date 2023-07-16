@@ -2,19 +2,19 @@ dataset:
   dataset_name: "ims"
   img_type: "MIDDLE_EAST_IR"
   seq_len: 25
-  raw_seq_len: 72
-  stride: 5
+  raw_seq_len: 45
+  stride: 12
   layout: "THWC"
   raw_img_shape: [600, 600, 1]
   batch_layout: "NTHWC"
-  ims_catalog: null
-  ims_data_dir: null
+  ims_catalog: "/home/theator/leah/cloud-forecasting-transformer/datasets/ims/data_IR_NOT_RSS/CATALOG.csv"
+  ims_data_dir: "/home/theator/leah/cloud-forecasting-transformer/datasets/ims/data_IR_NOT_RSS/data"
   start_date: [2023, 1, 1]
-  train_val_split_date: [2023, 2, 1]
-  train_test_split_date: [2023, 3, 1]
-  end_date: [2023, 4, 1]
-  time_delta: 10
-  raw_time_delta: 5
+  train_val_split_date: [2023, 3, 1]
+  train_test_split_date: [2023, 4, 1]
+  end_date: [2023, 5, 1]
+  time_delta: 15
+  raw_time_delta: 15
   shuffle: true
   shuffle_seed: 1
   preprocess:
@@ -29,27 +29,27 @@ dataset:
 optim:
   total_batch_size: 32
   micro_batch_size: 1
-  num_workers: 24
-  seed: 0
+  num_workers: 12 # 1/2 the amount of cores
+  seed: 1
   method: "adamw"
-  lr: 0.002
+  lr: 0.0005
   wd: 0.0
   gradient_clip_val: 1.0
-  max_epochs: 10 #TODO: there is an error when this is 1
+  max_epochs: 100 #TODO: there is an error when this is 1
   # scheduler
   lr_scheduler_mode: "cosine"
-  min_lr_ratio: 1.0e-1
+  min_lr_ratio: 1.0e-3
   warmup_min_lr_ratio: 0.0
   warmup_percentage: 0.2
   # early stopping
   early_stop: true
   early_stop_mode: "min"
-  early_stop_patience: 10
+  early_stop_patience: 20
   # checkpoints
-  save_top_k: 1
+  save_top_k: 3
   skill_score:
     metrics_list: [ 'csi', 'mae' ]
-    threshold_list: [ 16, 74, 133, 160, 181, 219 ]
+    threshold_list: [ 145, 160, 180, 200, 220 ]
     threshold_weights: null
   # loss
   lpips:
@@ -60,21 +60,21 @@ optim:
     layer: relu4_3
   fss:
     threshold: 160
-    scale: 10
+    scale: 20
     smooth_factor: 40
     strategy: "tanh"
   loss_coefficients:
-    mse: 0.5
+    mse: 0.0
     vgg: 0.0
-    fss: 0.25
-    lpips: 0.25
+    fss: 0.0
+    lpips: 1.0
 
 logging:
   logging_prefix: "Cuboid_IMS"
   monitor_lr: true
   monitor_device: false
-  track_grad_norm: -1
-  use_tensorbaord: false
+  track_grad_norm: 2
+  use_tensorbaord: true
   use_csv: false
   use_wandb: true
   wandb:
@@ -96,7 +96,7 @@ trainer:
   accelerator: gpu
   fss:
     threshold: 160
-    scale: 10
+    scale: 20
 
 model:
   model_name: cuboid_attention_model

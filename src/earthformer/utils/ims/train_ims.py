@@ -77,10 +77,8 @@ class IMSModule(pl.LightningModule):
         self.curr_version_dir = os.path.join(self.our_logs_dir, f"version_{self.curr_version_num}")
         os.makedirs(self.curr_version_dir, exist_ok=True)
 
-        self.scores_dir = os.path.join(self.curr_version_dir, "scores")
         self.examples_dir = os.path.join(self.curr_version_dir, "examples")
         self.checkpoints_dir = os.path.join(self.curr_version_dir, "checkpoints")
-        os.makedirs(self.scores_dir, exist_ok=True)
         os.makedirs(self.examples_dir, exist_ok=True)
         os.makedirs(self.checkpoints_dir, exist_ok=True)
 
@@ -138,9 +136,9 @@ class IMSModule(pl.LightningModule):
         """ 
         TensorBoardLogger - to see the metrics run the following commands on timon:
         cd leah/cloud-forecasting-transformer/
-        tensorboard --logdir scripts/cuboid_transformer/ims/logging/lightning_logs --bind_all
+        tensorboard --logdir <our_logging_dir> --bind_all
         
-        Then, go to chrome and connect http://http://192.168.0.177/:6006/.
+        Then, go to chrome and connect http://192.168.0.177:6006/.
         """
         if self.hparams.logging.use_tensorbaord:
             loggers.append(pl_loggers.TensorBoardLogger(save_dir=self.logging_dir,
@@ -246,6 +244,7 @@ def get_parser():
     parser.add_argument('--logging-dir', default=None, type=str)
     parser.add_argument('--gpus', default=1, type=int)
     parser.add_argument('--cfg', default=None, type=str, help="config file path.")
+    parser.add_argument('--seed', default=0, type=int, help="training seed.")
     parser.add_argument('--ckpt-path', default=None, type=str,
                         help="when set the model will start from that pretrained checkpoint.")
     parser.add_argument('--state-dict-file-name', default=None, type=str,
@@ -263,14 +262,14 @@ def main(ims_module):
     parser = get_parser()
     args = parser.parse_args()
 
+    # seed
+    seed_everything(seed=args.seed, workers=True)
+
     # model
     l_module = ims_module(logging_dir=args.logging_dir,
                           args=args.__dict__)
     # data
     dm = l_module.dm
-
-    # seed
-    seed_everything(seed=l_module.hparams.optim.seed, workers=True)
 
     # set trainer
     trainer_kwargs = l_module.get_trainer_kwargs(args.gpus)
