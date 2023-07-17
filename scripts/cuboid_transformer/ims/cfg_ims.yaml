@@ -27,14 +27,14 @@ dataset:
     scale: true
 
 optim:
-  total_batch_size: 32
+  total_batch_size: 16
   micro_batch_size: 1
   num_workers: 12 # 1/2 the amount of cores
   seed: 1
   method: "adamw"
-  lr: 0.0005
-  wd: 0.0
-  gradient_clip_val: 1.0
+  lr: 0.00025
+  wd: 1.0
+  gradient_clip_val: 1.0 # setting this to 0.00001 led to exploding gradients
   max_epochs: 100 #TODO: there is an error when this is 1
   # scheduler
   lr_scheduler_mode: "cosine"
@@ -73,8 +73,9 @@ logging:
   logging_prefix: "Cuboid_IMS"
   monitor_lr: true
   monitor_device: false
-  track_grad_norm: 2
-  use_tensorbaord: true
+  track_grad_norm: -1
+  monitor_mean_std: false
+  use_tensorbaord: false
   use_csv: false
   use_wandb: true
   wandb:

@@ -154,6 +154,11 @@ class CuboidIMSModule(IMSModule):
                                 data_idx=data_idx,
                                 mode="val")
 
+        if self.hparams.logging.monitor_mean_std:
+            flattened_y_hat = torch.flatten(y_hat)
+            self.log('val_y_hat_mean', torch.mean(flattened_y_hat), on_step=True, on_epoch=False)
+            self.log('val_y_hat_std', torch.std(flattened_y_hat), on_step=True, on_epoch=False)
+
         loss = self.validation_loss(y_hat, y)
         self.log('val_loss_step', torch.mean(loss), prog_bar=True, on_step=True, on_epoch=False)
         metrics_scores = dict(zip([f"val_step_{s}" for s in self.hparams.optim.skill_score.metrics_list], self._torch_to_numpy(loss)))

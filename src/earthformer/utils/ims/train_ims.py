@@ -15,7 +15,9 @@ import wandb
 from shutil import copyfile
 from datetime import datetime, timedelta
 from omegaconf import OmegaConf
-import os, sys
+import os
+import sys
+import numpy as np
 import json
 import logging
 import warnings
@@ -202,9 +204,14 @@ class IMSModule(pl.LightningModule):
         else:
             raise ValueError(f"Wrong mode {mode}! Must be in ['train', 'val', 'test'].")
 
-        in_seq = self._torch_to_numpy(in_seq)
-        target_seq = self._torch_to_numpy(target_seq)
-        pred_seq_list = self._torch_to_numpy(pred_seq_list)
+        # convert to numpy and clip the values
+        a_max = 255.0
+        if self.hparams.dataset.preprocess.scale:
+            a_max = 1.0
+
+        in_seq = np.clip(self._torch_to_numpy(in_seq), a_min=0.0, a_max=a_max)
+        target_seq = np.clip(self._torch_to_numpy(target_seq), a_min=0.0, a_max=a_max)
+        pred_seq_list = np.clip(self._torch_to_numpy(pred_seq_list), a_min=0.0, a_max=a_max)
         start_time = datetime.fromtimestamp(seq_start_time.item())
         time_delta = timedelta(minutes=self.hparams.dataset.time_delta)
 
