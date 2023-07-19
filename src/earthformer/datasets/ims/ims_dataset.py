@@ -128,7 +128,7 @@ class IMSDataset(Dataset):
         if self.start_date is not None:
             self._events = self._events[self._events.time_utc >= self.start_date]
         if self.end_date is not None:
-            self._events = self._events[self._events.time_utc <= self.end_date]
+            self._events = self._events[self._events.time_utc < self.end_date]
 
         self._events = self._events[self._events.img_type == self.img_type]
 
