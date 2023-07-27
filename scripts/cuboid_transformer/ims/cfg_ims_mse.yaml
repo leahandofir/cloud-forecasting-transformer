@@ -33,7 +33,7 @@ optim:
   lr: 0.0005
   wd: 1.0
   gradient_clip_val: 1.0
-  max_epochs: 100 #TODO: there is an error when this is 1
+  max_epochs: 100
   # scheduler
   lr_scheduler_mode: "cosine"
   min_lr_ratio: 1.0e-3
@@ -58,28 +58,20 @@ optim:
     layer: relu4_3
   fss:
     threshold: 160
-    scale: 10
-    smooth_factor: 20
+    scale: 20
+    smooth_factor: 40
     strategy: "tanh"
-  loss_warmup:
-    epochs: 1
-    coefficients:
-      mse: 1.0
-      vgg: 0.0
-      fss: 0.0
-      lpips: 0.0
-  loss:
-    coefficients:
-      mse: 0.0
-      vgg: 0.0
-      fss: 1.0
-      lpips: 0.0
+  loss_coefficients:
+    mse: 1.0
+    vgg: 0.0
+    fss: 0.0
+    lpips: 0.0
 
 logging:
   logging_prefix: "Cuboid_IMS"
   monitor_lr: true
   monitor_device: false
-  track_grad_norm: 2
+  track_grad_norm: -1
   monitor_mean_std: false
   use_tensorbaord: false
   use_csv: false
@@ -102,9 +94,8 @@ trainer:
   precision: 32
   accelerator: gpu
   fss:
-    enabled: true
     threshold: 160
-    scale: 10
+    scale: 20
 
 model:
   model_name: cuboid_attention_model

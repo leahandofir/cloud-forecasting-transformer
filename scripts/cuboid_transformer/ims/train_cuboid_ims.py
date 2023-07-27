@@ -37,6 +37,7 @@ class CuboidIMSModule(IMSModule):
                                 seq_len=self.hparams.model.out_len,
                                 pixel_scale=self.hparams.dataset.preprocess.scale,
                                 strategy=self.hparams.optim.fss.strategy,
+                                minimize=True,
                                 device=torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
 
         self.validation_loss = IMSSkillScore(scale=self.hparams.dataset.preprocess.scale,
@@ -66,10 +67,17 @@ class CuboidIMSModule(IMSModule):
             lpips_loss = 0
 
         fss_loss = self.fss_loss(target=y, output=y_hat)
-        loss = self.hparams.optim.loss_coefficients.mse * mse_loss + \
-               self.hparams.optim.loss_coefficients.vgg * vgg_loss + \
-               self.hparams.optim.loss_coefficients.fss * fss_loss + \
-               self.hparams.optim.loss_coefficients.lpips * lpips_loss
+
+        if self.current_epoch < self.hparams.optim.loss_warmup.epochs:
+            loss = self.hparams.optim.loss_warmup.coefficients.mse * mse_loss + \
+                   self.hparams.optim.loss_warmup.coefficients.vgg * vgg_loss + \
+                   self.hparams.optim.loss_warmup.coefficients.fss * fss_loss + \
+                   self.hparams.optim.loss_warmup.coefficients.lpips * lpips_loss
+        else:
+            loss = self.hparams.optim.loss.coefficients.mse * mse_loss + \
+                   self.hparams.optim.loss.coefficients.vgg * vgg_loss + \
+                   self.hparams.optim.loss.coefficients.fss * fss_loss + \
+                   self.hparams.optim.loss.coefficients.lpips * lpips_loss
 
         data_idx = int(batch_idx * self.hparams.optim.micro_batch_size)
 
@@ -88,6 +96,12 @@ class CuboidIMSModule(IMSModule):
             self.log('train_vgg_loss_step', vgg_loss, on_step=True, on_epoch=False)
         if self.hparams.optim.lpips.enabled:
             self.log('train_lpips_loss_step', lpips_loss, on_step=True, on_epoch=False)
+
+        # for sanity check
+        if self.hparams.trainer.fss.enabled:
+            fss_batch = self._calc_fss_batch(y, y_hat)
+            self.log('val_fss_step', fss_batch, on_step=True, on_epoch=False)
+
         return loss
 
     def predict_step(self, batch, batch_idx):
@@ -171,7 +185,7 @@ class CuboidIMSModule(IMSModule):
         self.log_dict(metrics_scores, sync_dist=True, on_epoch=True)
         self.validation_loss.reset()
 
-    def _calc_fss_batch(self, y, y_hat):
+    def _calc_fss_batch(self, y, y_hat): #TODO: this is not in use
         """
         y and y_hat are of shape NTHWC.
         Calculates accumulated fss for the whole batch.

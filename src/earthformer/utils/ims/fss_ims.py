@@ -65,7 +65,7 @@ class FSSLoss(torch.nn.Module):
             F_n = output
             O_n = target
 
-        numerator = ((F_n - O_n) ** 2).sum(dim=-2).sum(dim=-2)
+        numerator = ((F_n - O_n) ** 2).sum(dim=-2).sum(dim=-2) # TODO: why we sum twice?
         denominator = (F_n ** 2).sum(dim=-2).sum(dim=-2) + (O_n ** 2).sum(dim=-2).sum(dim=-2)
 
         # compute the mean loss for each sequence (loss is computed frame by frame)
@@ -73,4 +73,4 @@ class FSSLoss(torch.nn.Module):
 
         # return the average loss over all batches, multiply by -1 if we want to minimize
         fss_avg = fss_per_batch.mean()
-        return 1 - fss_avg if self.minimize else fss_avg
+        return 1.0 - fss_avg if self.minimize else fss_avg

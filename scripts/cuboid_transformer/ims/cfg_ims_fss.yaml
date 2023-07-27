@@ -1,9 +1,9 @@
 dataset:
   dataset_name: "ims"
   img_type: "MIDDLE_EAST_IR"
-  seq_len: 25
+  seq_len: 10
   raw_seq_len: 45
-  stride: 12
+  stride: 5
   layout: "THWC"
   raw_img_shape: [600, 600, 1]
   batch_layout: "NTHWC"
@@ -58,22 +58,14 @@ optim:
     layer: relu4_3
   fss:
     threshold: 160
-    scale: 10
+    scale: 20
     smooth_factor: 20
     strategy: "tanh"
-  loss_warmup:
-    epochs: 1
-    coefficients:
-      mse: 1.0
-      vgg: 0.0
-      fss: 0.0
-      lpips: 0.0
-  loss:
-    coefficients:
-      mse: 0.0
-      vgg: 0.0
-      fss: 1.0
-      lpips: 0.0
+  loss_coefficients:
+    mse: 0.0
+    vgg: 0.0
+    fss: 1.0
+    lpips: 0.0
 
 logging:
   logging_prefix: "Cuboid_IMS"
@@ -85,7 +77,7 @@ logging:
   use_csv: false
   use_wandb: true
   wandb:
-    project: "cloud-forecasting-transformer"
+    project: "cloud-forecasting-transformer-debug"
   visualize:
     train_example_data_idx_list: [0, 10, 20 ,50]
     val_example_data_idx_list: [0, 10, 20, 50]
@@ -102,14 +94,13 @@ trainer:
   precision: 32
   accelerator: gpu
   fss:
-    enabled: true
     threshold: 160
-    scale: 10
+    scale: 20
 
 model:
   model_name: cuboid_attention_model
-  in_len: 13
-  out_len: 12
+  in_len: 5
+  out_len: 5
   hwc: [384, 384, 1]
   base_units: 128
   block_units: null
