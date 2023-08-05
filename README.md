@@ -36,6 +36,7 @@ python3 -m pip install -U -e . --no-build-isolation --extra-index-url --trusted-
 ```
 Run inference script at scripts/cuboid_transformer/ims/ims_inference.py.
 ## Dataset
+Our dataset is not available online since we collected the dataon local disk.
 ### VIS vs. IR
 
 ### EUMESAT
