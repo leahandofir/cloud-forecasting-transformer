@@ -174,7 +174,7 @@ class IMSH5():
                 curr_date += day_time_delta
 
         if self.sample_mode == 'random':
-            # TODO: write this
+            # we gave up on that strategy
             pass
 
     def _discover_events(self, date):

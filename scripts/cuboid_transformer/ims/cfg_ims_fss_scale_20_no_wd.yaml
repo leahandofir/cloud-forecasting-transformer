@@ -1,9 +1,9 @@
 dataset:
   dataset_name: "ims"
   img_type: "MIDDLE_EAST_IR"
-  seq_len: 10
+  seq_len: 25
   raw_seq_len: 45
-  stride: 5
+  stride: 12
   layout: "THWC"
   raw_img_shape: [600, 600, 1]
   batch_layout: "NTHWC"
@@ -31,9 +31,9 @@ optim:
   num_workers: 12 # 1/2 the amount of cores
   method: "adamw"
   lr: 0.0005
-  wd: 1.0
+  wd: 0.0
   gradient_clip_val: 1.0
-  max_epochs: 100 #TODO: there is an error when this is 1
+  max_epochs: 100
   # scheduler
   lr_scheduler_mode: "cosine"
   min_lr_ratio: 1.0e-3
@@ -46,7 +46,7 @@ optim:
   # checkpoints
   save_top_k: 3
   skill_score:
-    metrics_list: [ 'csi', 'mae' ]
+    metrics_list: [ 'csi' ]
     threshold_list: [ 145, 160, 180, 200, 220 ]
     threshold_weights: null
   # loss
@@ -61,23 +61,31 @@ optim:
     scale: 20
     smooth_factor: 20
     strategy: "tanh"
-  loss_coefficients:
-    mse: 0.0
-    vgg: 0.0
-    fss: 1.0
-    lpips: 0.0
+  loss_warmup:
+    epochs: 1
+    coefficients:
+      mse: 1.0
+      vgg: 0.0
+      fss: 0.0
+      lpips: 0.0
+  loss:
+    coefficients:
+      mse: 0.0
+      vgg: 0.0
+      fss: 1.0
+      lpips: 0.0
 
 logging:
   logging_prefix: "Cuboid_IMS"
   monitor_lr: true
   monitor_device: false
-  track_grad_norm: 2
+  track_grad_norm: -1
   monitor_mean_std: false
   use_tensorbaord: false
   use_csv: false
   use_wandb: true
   wandb:
-    project: "cloud-forecasting-transformer-debug"
+    project: "cloud-forecasting-transformer"
   visualize:
     train_example_data_idx_list: [0, 10, 20 ,50]
     val_example_data_idx_list: [0, 10, 20, 50]
@@ -94,13 +102,14 @@ trainer:
   precision: 32
   accelerator: gpu
   fss:
+    enabled: true
     threshold: 160
     scale: 20
 
 model:
   model_name: cuboid_attention_model
-  in_len: 5
-  out_len: 5
+  in_len: 13
+  out_len: 12
   hwc: [384, 384, 1]
   base_units: 128
   block_units: null

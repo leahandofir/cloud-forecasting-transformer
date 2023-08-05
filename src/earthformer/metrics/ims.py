@@ -75,18 +75,22 @@ class IMSSkillScore(Metric):
 
     def update(self, prediction, target):
         # rescale
-        prediction = prediction * 255.0 if self.scale else prediction * 1.0
-        target = target * 255.0 if self.scale else target * 1.0
+        unscaled_prediction = prediction * 255.0 if self.scale else prediction * 1.0
+        unscaled_target = target * 255.0 if self.scale else target * 1.0
 
         for i, threshold in enumerate(self.threshold_list):
-            hits, misses, fas = self._calc(prediction, target, threshold)
+            hits, misses, fas = self._calc(unscaled_prediction, unscaled_target, threshold)
             self.hits[i] += hits
             self.misses[i] += misses
             self.fas[i] += fas
 
+        # rescale
+        scaled_prediction = prediction if self.scale else prediction / 255.0
+        scaled_target = target if self.scale else target / 255.0
+
         self.total_numel += target.numel()
-        self.sum_abs_error += torch.sum(torch.abs(prediction - target))
-        self.sum_squared_error += torch.sum((prediction - target)**2)
+        self.sum_abs_error += torch.sum(torch.abs(scaled_prediction - scaled_target))
+        self.sum_squared_error += torch.sum((scaled_prediction - scaled_target)**2)
 
     def compute(self):
         """

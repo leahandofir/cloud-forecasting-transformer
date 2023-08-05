@@ -40,15 +40,11 @@ class IMSLightningDataModule(LightningDataModule):
         # read https://lightning.ai/docs/pytorch/stable/data/datamodule.html how it is supposed to look
         self.ims_train = IMSDataset(start_date=self.start_date, end_date=self.train_val_split_date,
                                     **self.data_set_kwargs)
-        # TODO: delete prints
-        print("train:", len(self.ims_train))
         self.ims_val = IMSDataset(start_date=self.train_val_split_date, end_date=self.train_test_split_date,
                                   shuffle=False, **self.data_set_kwargs)
-        print("val:", len(self.ims_val))
         self.ims_test = IMSDataset(start_date=self.train_test_split_date, end_date=self.end_date,
                                    shuffle=False, **self.data_set_kwargs)
-        print("test:", len(self.ims_test))
-        # TODO: test and predict are the same
+        # test and predict are the same, we are not using predict
         self.ims_predict = IMSDataset(start_date=self.train_test_split_date, end_date=self.end_date,
                                       **self.data_set_kwargs)
 

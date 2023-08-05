@@ -216,7 +216,6 @@ class IMSModule(pl.LightningModule):
         time_delta = timedelta(minutes=self.hparams.dataset.time_delta)
 
         if data_idx in example_data_idx_list:
-            # TODO: add times to our visualization?
             self.visualize.save_example(save_prefix=f'{mode}_epoch_{self.current_epoch}_data_{data_idx}',
                                         in_seq=in_seq,
                                         target_seq=target_seq,

@@ -1,11 +1,19 @@
+# TODO: maybe we can try discretization of more then 1 value?
+
 import torch
 import torch.nn.functional as F
 
 
 class FSSLoss(torch.nn.Module):
-    # TODO: write what every input is suppose to be
+    """
+    threshold, scale - parameters of fss calculation.
+    hwc, seq_len - dimensions of prediction/target.
+    minimize - indicates whether to calculate fss or 1-fss.
+    smooth_factor, strategy - how fss function is smoothed.
+    pixel_scale - indicates whether the pixels of the input images are scaled or not.
+    """
     def __init__(self,
-                 threshold: int, # TODO: maybe we can try discretization of more then 1 value?
+                 threshold: int,
                  scale: int,
                  hwc: tuple,
                  seq_len: int,
@@ -65,7 +73,7 @@ class FSSLoss(torch.nn.Module):
             F_n = output
             O_n = target
 
-        numerator = ((F_n - O_n) ** 2).sum(dim=-2).sum(dim=-2) # TODO: why we sum twice?
+        numerator = ((F_n - O_n) ** 2).sum(dim=-2).sum(dim=-2)
         denominator = (F_n ** 2).sum(dim=-2).sum(dim=-2) + (O_n ** 2).sum(dim=-2).sum(dim=-2)
 
         # compute the mean loss for each sequence (loss is computed frame by frame)
