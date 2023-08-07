@@ -2,12 +2,6 @@
 
 ## Tutorials
 
-## Introduction
-
-### Cuboid Attention
-
-### Loss functions
-
 ## Installation
 ### Training
 Install CUDA (We had CUDA 11.7 or 11.8 installed): https://developer.nvidia.com/cuda-downloads
