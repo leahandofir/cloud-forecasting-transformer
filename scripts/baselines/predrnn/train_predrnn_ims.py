@@ -28,8 +28,6 @@ class PredRNNIMSModule(IMSModule):
                                  num_hidden=self.hparams.model.num_hidden,
                                  args=self.hparams.model)
 
-        self.validation_loss = torchmetrics.MeanSquaredError()  # TODO: this is not right!
-
     def forward(self, x):
         return self.rainformer_model(x)
 
@@ -110,25 +108,8 @@ class PredRNNIMSModule(IMSModule):
         start_time, x, y = get_x_y_from_batch(batch, self.hparams.model.input_length,
                                               self.hparams.model.total_length - self.hparams.model.input_length)
         y_hat = reshape_patch_back(next_frames, self.hparams.model.patch_size)[:, -(self.hparams.model.total_length - self.hparams.model.input_length):]
-        val_loss = self.validation_loss(y, y_hat)
 
-        data_idx = int(
-            batch_idx * self.hparams.optim.micro_batch_size)
-
-        # save our visualization
-        self.save_visualization(seq_start_time=start_time[0],
-                                in_seq=x[0],
-                                target_seq=y[0],
-                                pred_seq_list=y_hat[0],
-                                data_idx=data_idx,
-                                mode="val")
-
-        self.log('val_loss_step', val_loss, prog_bar=True, on_step=True, on_epoch=False)
-
-    def validation_epoch_end(self, outputs):
-        epoch_loss = self.validation_loss.compute()
-        self.log("val_loss_epoch", epoch_loss, sync_dist=True, on_epoch=True)
-        self.validation_loss.reset()
+        self.compute_validation_loss(batch_idx, start_time, x, y, y_hat)
 
 
 if __name__ == "__main__":

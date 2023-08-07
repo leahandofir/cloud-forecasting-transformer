@@ -42,15 +42,6 @@ class CuboidIMSModule(IMSModule):
                                 minimize=True,
                                 device=torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
 
-        self.validation_loss = IMSSkillScore(scale=self.hparams.dataset.preprocess.scale,
-                                             threshold_list=self.hparams.optim.skill_score.threshold_list,
-                                             threshold_weights=self.hparams.optim.skill_score.threshold_weights,
-                                             metrics_list=self.hparams.optim.skill_score.metrics_list,)
-        self.test_loss = IMSSkillScore(scale=self.hparams.dataset.preprocess.scale,
-                                       threshold_list=self.hparams.optim.skill_score.threshold_list,
-                                       threshold_weights=self.hparams.optim.skill_score.threshold_weights,
-                                       metrics_list=self.hparams.optim.skill_score.metrics_list,)
-
     def forward(self, x):
         return self.cuboid_attention_model(x)
 
@@ -162,67 +153,13 @@ class CuboidIMSModule(IMSModule):
         start_time, x, y = get_x_y_from_batch(batch, self.hparams.model.in_len, self.hparams.model.out_len)
         y_hat = self(x)
 
-        # take the first sample in any microbatch
-        data_idx = int(
-            batch_idx * self.hparams.optim.micro_batch_size)
-
-        # save our visualization
-        self.save_visualization(seq_start_time=start_time[0],
-                                in_seq=x[0],
-                                target_seq=y[0],
-                                pred_seq_list=y_hat[0],
-                                data_idx=data_idx,
-                                mode="val")
-
-        if self.hparams.logging.monitor_mean_std:
-            flattened_y_hat = torch.flatten(y_hat)
-            self.log('val_y_hat_mean', torch.mean(flattened_y_hat), on_step=True, on_epoch=False)
-            self.log('val_y_hat_std', torch.std(flattened_y_hat), on_step=True, on_epoch=False)
-
-        loss = self.validation_loss(y_hat, y)
-        self._log_val_loss(loss, step=True)
-
-    def _log_val_loss(self, loss, step=True, mode="val"):
-        label = "step" if step else "epoch"
-        logging_params = dict(on_step=True, on_epoch=False) if step else dict(sync_dist=True, on_epoch=True)
-
-        self.log(f'{mode}_loss_{label}', torch.mean(loss), **logging_params)
-        val_loss_labels = [f"{mode}_{label}_{s}" for s in self.hparams.optim.skill_score.metrics_list]
-
-        detached_loss = self._torch_to_numpy(loss)
-        if len(self.hparams.optim.skill_score.metrics_list) > 1:
-            self.log_dict(dict(zip(val_loss_labels, detached_loss)), **logging_params)
-        else:
-            self.log(val_loss_labels[0], float(detached_loss), **logging_params)
-
-    def validation_epoch_end(self, outputs):
-        epoch_loss = self.validation_loss.compute()
-        self._log_val_loss(epoch_loss, step=False)
-        self.validation_loss.reset()
+        self.compute_validation_loss(batch_idx, start_time, x, y, y_hat)
 
     def test_step(self, batch, batch_idx):
         start_time, x, y = get_x_y_from_batch(batch, self.hparams.model.in_len, self.hparams.model.out_len)
         y_hat = self(x)
-        loss = self.test_loss(y_hat, y)
 
-        # take the first sample in any microbatch
-        data_idx = int(
-            batch_idx * self.hparams.optim.micro_batch_size)
-
-        # save our visualization
-        self.save_visualization(seq_start_time=start_time[0],
-                                in_seq=x[0],
-                                target_seq=y[0],
-                                pred_seq_list=y_hat[0],
-                                data_idx=data_idx,
-                                mode="test")
-
-        self._log_val_loss(loss, step=True, mode="test")
-
-    def test_epoch_end(self):
-        epoch_loss = self.test_loss.compute()
-        self._log_val_loss(epoch_loss, step=False, mode="test")
-        self.test_loss.reset()
+        self.compute_test_loss(batch_idx, start_time, x, y, y_hat)
 
     def _calc_fss_batch(self, y, y_hat):
         """

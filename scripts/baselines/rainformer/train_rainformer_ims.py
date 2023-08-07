@@ -33,7 +33,6 @@ class RainformerIMSModule(IMSModule):
             relative_pos_embedding=self.hparams.model.relative_pos_embedding)
 
         self.training_loss = BMAEloss()
-        self.validation_loss = torchmetrics.MeanSquaredError() # TODO: this is not right!
 
     def forward(self, x):
         return self.rainformer_model(x)
@@ -80,25 +79,7 @@ class RainformerIMSModule(IMSModule):
         y_hat = self.rainformer_model(torch.squeeze(x, dim=-1))
         y_hat = torch.unsqueeze(y_hat, dim=-1)
 
-        data_idx = int(
-            batch_idx * self.hparams.optim.micro_batch_size)
-
-        # save our visualization
-        self.save_visualization(seq_start_time=start_time[0],
-                                in_seq=x[0],
-                                target_seq=y[0],
-                                pred_seq_list=y_hat[0],
-                                data_idx=data_idx,
-                                mode="val")
-
-        loss = self.validation_loss(y_hat, y)
-        self.log('val_loss_step', loss, prog_bar=True, on_step=True, on_epoch=False)
-
-    def validation_epoch_end(self, outputs):
-        epoch_loss = self.validation_loss.compute()
-        self.log("val_loss_epoch", epoch_loss, sync_dist=True, on_epoch=True)
-        self.validation_loss.reset()
-
+        self.compute_validation_loss(batch_idx, start_time, x, y, y_hat)
 
 if __name__ == "__main__":
     main(RainformerIMSModule)

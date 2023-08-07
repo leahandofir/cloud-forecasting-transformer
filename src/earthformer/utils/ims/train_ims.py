@@ -6,6 +6,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor, De
 import torch
 
 from earthformer.datasets.ims.ims_datamodule import IMSLightningDataModule
+from earthformer.metrics.ims import IMSSkillScore
 from earthformer.visualization.ims.ims_visualize import IMSVisualize
 from earthformer.config import cfg
 from earthformer.utils.apex_ddp import ApexDDPStrategy
@@ -57,6 +58,16 @@ class IMSModule(pl.LightningModule):
 
         # create logging directories and set up logging
         self._init_logging(logging_dir)
+
+        # set up validation and test loss
+        self.validation_loss = IMSSkillScore(scale=self.hparams.dataset.preprocess.scale,
+                                             threshold_list=self.hparams.optim.skill_score.threshold_list,
+                                             threshold_weights=self.hparams.optim.skill_score.threshold_weights,
+                                             metrics_list=self.hparams.optim.skill_score.metrics_list,)
+        self.test_loss = IMSSkillScore(scale=self.hparams.dataset.preprocess.scale,
+                                       threshold_list=self.hparams.optim.skill_score.threshold_list,
+                                       threshold_weights=self.hparams.optim.skill_score.threshold_weights,
+                                       metrics_list=self.hparams.optim.skill_score.metrics_list,)
 
     def _init_logging(self, logging_dir: str = None):
         # creates logging directories and adds their path as data members
@@ -244,6 +255,65 @@ class IMSModule(pl.LightningModule):
         dm.prepare_data()
         dm.setup()
         return dm
+
+    def _log_val_loss(self, loss, step=True, mode="val"):
+        label = "step" if step else "epoch"
+        logging_params = dict(on_step=True, on_epoch=False) if step else dict(sync_dist=True, on_epoch=True)
+
+        self.log(f'{mode}_loss_{label}', torch.mean(loss), **logging_params)
+        val_loss_labels = [f"{mode}_{label}_{s}" for s in self.hparams.optim.skill_score.metrics_list]
+
+        detached_loss = self._torch_to_numpy(loss)
+        if len(self.hparams.optim.skill_score.metrics_list) > 1:
+            self.log_dict(dict(zip(val_loss_labels, detached_loss)), **logging_params)
+        else:
+            self.log(val_loss_labels[0], float(detached_loss), **logging_params)
+
+    def compute_validation_loss(self, batch_idx, start_time, x, y, y_hat):
+        # take the first sample in any microbatch
+        data_idx = int(
+            batch_idx * self.hparams.optim.micro_batch_size)
+
+        # save our visualization
+        self.save_visualization(seq_start_time=start_time[0],
+                                in_seq=x[0],
+                                target_seq=y[0],
+                                pred_seq_list=y_hat[0],
+                                data_idx=data_idx,
+                                mode="val")
+
+        if self.hparams.logging.monitor_mean_std:
+            flattened_y_hat = torch.flatten(y_hat)
+            self.log('val_y_hat_mean', torch.mean(flattened_y_hat), on_step=True, on_epoch=False)
+            self.log('val_y_hat_std', torch.std(flattened_y_hat), on_step=True, on_epoch=False)
+
+        loss = self.validation_loss(y_hat, y)
+        self._log_val_loss(loss, step=True)
+
+    def compute_test_loss(self, batch_idx, start_time, x, y, y_hat):
+        # take the first sample in any microbatch
+        data_idx = int(
+            batch_idx * self.hparams.optim.micro_batch_size)
+
+        # save our visualization
+        self.save_visualization(seq_start_time=start_time[0],
+                                in_seq=x[0],
+                                target_seq=y[0],
+                                pred_seq_list=y_hat[0],
+                                data_idx=data_idx,
+                                mode="test")
+
+        loss = self.test_loss(y_hat, y)
+        self._log_val_loss(loss, step=True, mode="test")
+
+    def validation_epoch_end(self, outputs):
+        epoch_loss = self.validation_loss.compute()
+        self._log_val_loss(epoch_loss, step=False)
+
+    def test_epoch_end(self):
+        epoch_loss = self.test_loss.compute()
+        self._log_val_loss(epoch_loss, step=False, mode="test")
+        self.test_loss.reset()
 
 def get_parser():
     parser = argparse.ArgumentParser()
