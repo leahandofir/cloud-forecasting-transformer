@@ -1,9 +1,9 @@
 dataset:
   dataset_name: "ims"
   img_type: "MIDDLE_EAST_IR"
-  seq_len: 20 #total_len
-  raw_seq_len: 72
-  stride: 9
+  seq_len: 10 #total_len
+  raw_seq_len: 72 # TODO: change this to big dataset
+  stride: 5
   layout: "THWC"
   raw_img_shape: [600, 600, 1]
   batch_layout: "NTHWC"
@@ -20,28 +20,37 @@ dataset:
     crop:
       top: 200
       left: 200
-      height: 64
-      width: 64
-    scale: false
+      height: 384
+      width: 384
+    scale: true
 
 optim:
   total_batch_size: 8
   micro_batch_size: 1
-  num_workers: 0
+  num_workers: 2
   seed: 0
   method: "adamw"
-  lr: 0.001
+  lr: 0.0003
   wd: 0.0
   gradient_clip_val: 1.0
   max_epochs: 10
+  # early stopping
+  early_stop: true
+  early_stop_mode: "min"
+  early_stop_patience: 20
   # checkpoints
-  save_top_k: 1
+  save_top_k: 3
+  skill_score:
+    metrics_list: [ 'csi', 'mae' ]
+    threshold_list: [ 145, 160, 180, 200, 220 ]
+    threshold_weights: null
 
 logging:
   logging_prefix: "PredRNN_IMS"
   monitor_lr: true
   monitor_device: false
   track_grad_norm: -1
+  monitor_mean_std: false
   use_tensorbaord: false
   use_csv: false
   use_wandb: true
@@ -65,17 +74,17 @@ trainer:
 
 model:
   model_name: "predrnn"
-  in_len: 10 # must have params.
-  out_len: 10 # must have params.
-  input_length: 10
-  total_length: 20
+  in_len: 5 # must have params.
+  out_len: 5 # must have params.
+  input_length: 5
+  total_length: 10
   img_channel: 1
-  img_width: 64
-  num_hidden: "64, 64, 64, 64"
+  img_width: 384
+  num_hidden: [ 384, 384, 384, 384 ]
   filter_size: 5
   stride: 1
-  patch_size: 4
-  layer_norm: 1
+  patch_size: 12
+  layer_norm: 0
   decouple_beta: 0.1
   injection_action: "concat"
   conv_on_input: 0
