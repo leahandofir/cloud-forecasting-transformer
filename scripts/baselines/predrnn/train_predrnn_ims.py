@@ -23,11 +23,9 @@ class PredRNNIMSModule(IMSModule):
                                                current_dir=os.path.dirname(__file__))
 
         # load predrnn model
-        self.num_hidden = [int(x) for x in self.hparams.model.num_hidden.split(',')]
-        self.num_layers = len(self.num_hidden)
         self.eta = self.hparams.model.sampling_start_value
-        self.predrnn_model = RNN(num_layers=self.num_layers,
-                                 num_hidden=self.num_hidden,
+        self.predrnn_model = RNN(num_layers=len(self.hparams.model.num_hidden),
+                                 num_hidden=self.hparams.model.num_hidden,
                                  args=self.hparams.model)
 
         self.validation_loss = torchmetrics.MeanSquaredError()  # TODO: this is not right!
@@ -38,7 +36,7 @@ class PredRNNIMSModule(IMSModule):
     def training_step(self, batch, batch_idx):
         start_time, seq = batch
         seq = reshape_patch(seq, self.hparams.model.patch_size)
-        itr = (self.current_epoch + 1) * batch_idx + 1
+        itr = (self.current_epoch * (len(self.dm.ims_train) // self.hparams.optim.micro_batch_size)) + batch_idx + 1
 
         if self.hparams.model.reverse_scheduled_sampling == 1:
             real_input_flag = reserve_schedule_sampling_exp(itr=itr,

@@ -6,7 +6,6 @@ import torch
 import torch.nn as nn
 from earthformer.baselines.predrnn.spatio_temporal_lstm_cell import SpatioTemporalLSTMCell
 
-
 class RNN(nn.Module):
     def __init__(self,
                  num_layers,
