@@ -27,13 +27,13 @@ dataset:
 
 optim:
   total_batch_size: 32
-  micro_batch_size: 2
+  micro_batch_size: 1
   num_workers: 12 # 1/2 the amount of cores
   method: "adamw"
-  lr: 0.0005
-  wd: 1.0
+  lr: 0.00025
+  wd: 0.0
   gradient_clip_val: 1.0
-  max_epochs: 100 #TODO: there is an error when this is 1
+  max_epochs: 100
   # scheduler
   lr_scheduler_mode: "cosine"
   min_lr_ratio: 1.0e-3
@@ -51,7 +51,7 @@ optim:
     threshold_weights: null
   # loss
   lpips:
-    enabled: false
+    enabled: true
     net: "vgg"
   vgg:
     enabled: false
@@ -62,7 +62,7 @@ optim:
     smooth_factor: 20
     strategy: "tanh"
   loss_warmup:
-    epochs: 1
+    epochs: 0
     coefficients:
       mse: 1.0
       vgg: 0.0
@@ -70,16 +70,16 @@ optim:
       lpips: 0.0
   loss:
     coefficients:
-      mse: 0.0
+      mse: 0.5
       vgg: 0.0
-      fss: 1.0
-      lpips: 0.0
+      fss: 0.0
+      lpips: 0.5
 
 logging:
   logging_prefix: "Cuboid_IMS"
   monitor_lr: true
   monitor_device: false
-  track_grad_norm: 2
+  track_grad_norm: -1
   monitor_mean_std: false
   use_tensorbaord: false
   use_csv: false
