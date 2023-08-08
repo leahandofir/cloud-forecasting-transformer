@@ -29,7 +29,6 @@ FIRST_VERSION_NUM = 0
 class IMSModule(pl.LightningModule):
     def __init__(self,
                  args: dict = None,
-                 logging_dir: str = None,
                  current_dir: str = None):
         super(IMSModule, self).__init__()
 
@@ -57,37 +56,46 @@ class IMSModule(pl.LightningModule):
                                    self.hparams.optim.total_batch_size)
 
         # create logging directories and set up logging
-        self._init_logging(logging_dir)
+        self._init_logging(logging_dir=args["logging_dir"], results_dir=args["results_dir"], test=args["test"])
 
         # set up validation and test loss
-        self.validation_loss = IMSSkillScore(scale=self.hparams.dataset.preprocess.scale,
-                                             threshold_list=self.hparams.optim.skill_score.threshold_list,
-                                             threshold_weights=self.hparams.optim.skill_score.threshold_weights,
-                                             metrics_list=self.hparams.optim.skill_score.metrics_list,)
-        self.test_loss = IMSSkillScore(scale=self.hparams.dataset.preprocess.scale,
-                                       threshold_list=self.hparams.optim.skill_score.threshold_list,
-                                       threshold_weights=self.hparams.optim.skill_score.threshold_weights,
-                                       metrics_list=self.hparams.optim.skill_score.metrics_list,)
+        if args["test"]:
+            self.test_loss = IMSSkillScore(scale=self.hparams.dataset.preprocess.scale,
+                                           threshold_list=self.hparams.optim.skill_score.threshold_list,
+                                           threshold_weights=self.hparams.optim.skill_score.threshold_weights,
+                                           metrics_list=self.hparams.optim.skill_score.metrics_list, )
+        else:
+            self.validation_loss = IMSSkillScore(scale=self.hparams.dataset.preprocess.scale,
+                                                 threshold_list=self.hparams.optim.skill_score.threshold_list,
+                                                 threshold_weights=self.hparams.optim.skill_score.threshold_weights,
+                                                 metrics_list=self.hparams.optim.skill_score.metrics_list,)
 
-    def _init_logging(self, logging_dir: str = None):
+    def _init_logging(self, logging_dir: str = None, results_dir: str = None, test: bool = False):
         # creates logging directories and adds their path as data members
-        if logging_dir is None:
-            logging_dir = os.path.join(self.current_dir, "logging")
-        self.logging_dir = logging_dir
-        os.makedirs(self.logging_dir, exist_ok=True)
-
-        self.our_logs_dir = os.path.join(self.logging_dir, "our_logs")
-        os.makedirs(self.our_logs_dir, exist_ok=True)
+        if test:
+            if results_dir is None:
+                results_dir = os.path.join(self.current_dir, "results")
+            self.save_dir = results_dir
+            os.makedirs(self.results_dir, exist_ok=True)
+            self.our_save_dir = os.path.join(self.results_dir, "our_results")
+            os.makedirs(self.our_save_dir, exist_ok=True)
+        else:
+            if logging_dir is None:
+                logging_dir = os.path.join(self.current_dir, "logging")
+            self.save_dir = logging_dir
+            os.makedirs(self.logging_dir, exist_ok=True)
+            self.our_save_dir = os.path.join(self.logging_dir, "our_logs")
+            os.makedirs(self.our_save_dir, exist_ok=True)
 
         # add a new directory for the curr version 
         max_version_num = FIRST_VERSION_NUM
-        for d in os.listdir(self.our_logs_dir):
-            if os.path.isdir(os.path.join(self.our_logs_dir, d)):
+        for d in os.listdir(self.our_save_dir):
+            if os.path.isdir(os.path.join(self.our_save_dir, d)):
                 if (d.split("_")[-1]).isnumeric():
                     max_version_num = max(max_version_num, int(d.split("_")[-1]))
 
         self.curr_version_num = max_version_num + 1
-        self.curr_version_dir = os.path.join(self.our_logs_dir, f"version_{self.curr_version_num}")
+        self.curr_version_dir = os.path.join(self.our_save_dir, f"version_{self.curr_version_num}")
         os.makedirs(self.curr_version_dir, exist_ok=True)
 
         self.examples_dir = os.path.join(self.curr_version_dir, "examples")
@@ -154,14 +162,14 @@ class IMSModule(pl.LightningModule):
         Then, go to chrome and connect http://192.168.0.177:6006/.
         """
         if self.hparams.logging.use_tensorbaord:
-            loggers.append(pl_loggers.TensorBoardLogger(save_dir=self.logging_dir,
+            loggers.append(pl_loggers.TensorBoardLogger(save_dir=self.save_dir,
                                                         version=self.curr_version_num))
 
         """
         CSVLogger
         """
         if self.hparams.logging.use_csv:
-            loggers.append(pl_loggers.CSVLogger(save_dir=self.logging_dir,
+            loggers.append(pl_loggers.CSVLogger(save_dir=self.save_dir,
                                                 version=self.curr_version_num))
 
         """
@@ -169,7 +177,7 @@ class IMSModule(pl.LightningModule):
         """
         if self.hparams.logging.use_wandb:
             loggers.append(pl_loggers.WandbLogger(project=self.hparams.logging.wandb.project,
-                                                  save_dir=self.logging_dir,
+                                                  save_dir=self.save_dir,
                                                   name=f"version_{self.curr_version_num}"))
 
         trainer_kwargs = dict(
@@ -318,6 +326,7 @@ class IMSModule(pl.LightningModule):
 def get_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--logging-dir', default=None, type=str)
+    parser.add_argument('--results-dir', default=None, type=str)
     parser.add_argument('--gpus', default=1, type=int)
     parser.add_argument('--cfg', default=None, type=str, help="config file path.")
     parser.add_argument('--seed', default=0, type=int, help="training seed.")
@@ -325,7 +334,7 @@ def get_parser():
                         help="when set the model will start from that pretrained checkpoint.")
     parser.add_argument('--state-dict-file-name', default=None, type=str,
                         help="when set the model will start from that state dict.")
-    parser.add_argument('--pretrained', default=False, type=bool,
+    parser.add_argument('--test', default=False, type=bool,
                         help="when set to True the model will only be tested."
                              "only one of --state-dict-file-name or --ckpt-path must be set.")
     return parser
@@ -342,14 +351,15 @@ def main(ims_module):
     seed_everything(seed=args.seed, workers=True)
 
     # model
-    l_module = ims_module(logging_dir=args.logging_dir,
-                          args=args.__dict__)
+    l_module = ims_module(args=args.__dict__)
     # data
     dm = l_module.dm
 
     # set trainer
     trainer_kwargs = l_module.get_trainer_kwargs(args.gpus)
     trainer = pl.Trainer(**trainer_kwargs)
+    training_args = dict(model=l_module,
+                         datamodule=dm)
 
     if args.state_dict_file_name is not None and args.ckpt_path is not None:
         sys.exit("both state-dict-file-name and ckpt-path are set!")
@@ -368,11 +378,9 @@ def main(ims_module):
             warnings.warn(f"checkpoint {args.ckpt_path} not exists!")
         else:
             print(f"Using checkpoint {args.ckpt_path}")
+            training_args.update(dict(ckpt_path=args.ckpt_path))
 
-    if args.pretrained:
-        trainer.test(model=l_module,
-                     datamodule=dm)
+    if args.test:
+        trainer.test(training_args)
     else:
-        trainer.fit(model=l_module,
-                    datamodule=dm,
-                    ckpt_path=args.ckpt_path)
+        trainer.fit(training_args)

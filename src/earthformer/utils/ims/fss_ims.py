@@ -79,6 +79,6 @@ class FSSLoss(torch.nn.Module):
         # compute the mean loss for each sequence (loss is computed frame by frame)
         fss_per_batch = (1 - numerator / denominator).mean(dim=-1)
 
-        # return the average loss over all batches, multiply by -1 if we want to minimize
+        # return the average loss over all batches, calculate 1-fss if we want to minimize
         fss_avg = fss_per_batch.mean()
         return 1.0 - fss_avg if self.minimize else fss_avg
