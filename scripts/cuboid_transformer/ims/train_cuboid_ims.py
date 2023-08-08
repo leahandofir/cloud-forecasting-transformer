@@ -23,7 +23,6 @@ class CuboidIMSModule(IMSModule):
                  args: dict = None,
                  logging_dir: str = None):
         super(CuboidIMSModule, self).__init__(args=args,
-                                              logging_dir=logging_dir,
                                               current_dir=os.path.dirname(__file__))
 
         # load cuboid attention model

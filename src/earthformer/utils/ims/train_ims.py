@@ -38,14 +38,22 @@ class IMSModule(pl.LightningModule):
 
         self.args = args
 
-        if args is None or args["cfg"] is None:
-            self.cfg_file_path = os.path.join(self.current_dir, "cfg_ims.yaml")
-        else:
-            self.cfg_file_path = args["cfg"]
+        # load module cfg
+        file_cfg = OmegaConf.create()
+        ckpt_cfg = OmegaConf.create()
 
-        # save hyperparams
-        train_cfg = OmegaConf.load(open(self.cfg_file_path, "r"))
-        self.save_hyperparameters(train_cfg)
+        # loaded from ckpt, load ckpt_cfg
+        if args is not None and args["ckpt"] is not None:
+            checkpoint = torch.load(args["ckpt"], map_location=torch.device('cpu'))
+            ckpt_cfg = OmegaConf.create(checkpoint["hyper_parameters"])
+
+        # load file cfg
+        if args is not None and args["cfg"] is not None:
+            self.cfg_file_path = args["cfg"]
+            file_cfg = OmegaConf.load(open(self.cfg_file_path, "r"))
+
+        self.module_cfg = OmegaConf.merge(ckpt_cfg, file_cfg)
+        self.save_hyperparameters(self.module_cfg)
 
         # data module
         self.dm = self._get_dm()
@@ -65,10 +73,10 @@ class IMSModule(pl.LightningModule):
                                            threshold_weights=self.hparams.optim.skill_score.threshold_weights,
                                            metrics_list=self.hparams.optim.skill_score.metrics_list, )
         else:
+            # all metrics
             self.validation_loss = IMSSkillScore(scale=self.hparams.dataset.preprocess.scale,
                                                  threshold_list=self.hparams.optim.skill_score.threshold_list,
-                                                 threshold_weights=self.hparams.optim.skill_score.threshold_weights,
-                                                 metrics_list=self.hparams.optim.skill_score.metrics_list,)
+                                                 threshold_weights=self.hparams.optim.skill_score.threshold_weights,)
 
     def _init_logging(self, logging_dir: str = None, results_dir: str = None, test: bool = False):
         # creates logging directories and adds their path as data members
@@ -76,15 +84,15 @@ class IMSModule(pl.LightningModule):
             if results_dir is None:
                 results_dir = os.path.join(self.current_dir, "results")
             self.save_dir = results_dir
-            os.makedirs(self.results_dir, exist_ok=True)
-            self.our_save_dir = os.path.join(self.results_dir, "our_results")
+            os.makedirs(self.save_dir, exist_ok=True)
+            self.our_save_dir = os.path.join(self.save_dir, "our_results")
             os.makedirs(self.our_save_dir, exist_ok=True)
         else:
             if logging_dir is None:
                 logging_dir = os.path.join(self.current_dir, "logging")
             self.save_dir = logging_dir
-            os.makedirs(self.logging_dir, exist_ok=True)
-            self.our_save_dir = os.path.join(self.logging_dir, "our_logs")
+            os.makedirs(self.save_dir, exist_ok=True)
+            self.our_save_dir = os.path.join(self.save_dir, "our_logs")
             os.makedirs(self.our_save_dir, exist_ok=True)
 
         # add a new directory for the curr version 
@@ -111,11 +119,11 @@ class IMSModule(pl.LightningModule):
                                       plot_stride=self.hparams.logging.visualize.plot_stride,
                                       cmap=self.hparams.logging.visualize.cmap)
 
-        # save a copy of the current config inside the logging dir
+        # save a copy of the current config inside the save dir
         cfg_file_target_path = os.path.join(self.curr_version_dir, "cfg.yaml")
         if (not os.path.exists(cfg_file_target_path)) or \
                 (not os.path.samefile(self.cfg_file_path, cfg_file_target_path)):
-            copyfile(self.cfg_file_path, cfg_file_target_path)
+            OmegaConf.save(self.module_cfg, open(cfg_file_target_path, "w"))
 
         # save the command line args into json
         args_file_target_path = os.path.join(self.curr_version_dir, "args.json")
@@ -189,7 +197,7 @@ class IMSModule(pl.LightningModule):
             log_every_n_steps=max(1, int(self.hparams.trainer.log_step_ratio * self.total_num_steps)),
             track_grad_norm=self.hparams.logging.track_grad_norm,
             # save
-            default_root_dir=self.logging_dir,
+            default_root_dir=self.save_dir,
             # ddp
             accelerator=self.hparams.trainer.accelerator,
             strategy=ApexDDPStrategy(find_unused_parameters=False, delay_allreduce=True),
@@ -318,7 +326,7 @@ class IMSModule(pl.LightningModule):
         epoch_loss = self.validation_loss.compute()
         self._log_val_loss(epoch_loss, step=False)
 
-    def test_epoch_end(self):
+    def test_epoch_end(self, outputs):
         epoch_loss = self.test_loss.compute()
         self._log_val_loss(epoch_loss, step=False, mode="test")
         self.test_loss.reset()
@@ -330,8 +338,9 @@ def get_parser():
     parser.add_argument('--gpus', default=1, type=int)
     parser.add_argument('--cfg', default=None, type=str, help="config file path.")
     parser.add_argument('--seed', default=0, type=int, help="training seed.")
-    parser.add_argument('--ckpt-path', default=None, type=str,
-                        help="when set the model will start from that pretrained checkpoint.")
+    parser.add_argument('--ckpt', default=None, type=str,
+                        help="when set the model will start from that pretrained checkpoint, \
+                             and all settings defined in cfg.yaml will override the ckpt hyperparameters.")
     parser.add_argument('--state-dict-file-name', default=None, type=str,
                         help="when set the model will start from that state dict.")
     parser.add_argument('--test', default=False, type=bool,
@@ -346,12 +355,25 @@ def main(ims_module):
 
     parser = get_parser()
     args = parser.parse_args()
+    training_args = {}
 
     # seed
     seed_everything(seed=args.seed, workers=True)
 
+    # check if checkpoint is in use
+    if args.state_dict_file_name is not None and args.ckpt is not None:
+        sys.exit("both state-dict-file-name and ckpt-path are set!")
+
+    if args.ckpt is not None:
+        if not os.path.exists(args.ckpt):
+            warnings.warn(f"checkpoint {args.ckpt} not exists!")
+        else:
+            print(f"Using checkpoint {args.ckpt}")
+            training_args.update(dict(ckpt_path=args.ckpt))
+
     # model
     l_module = ims_module(args=args.__dict__)
+
     # data
     dm = l_module.dm
 
@@ -360,9 +382,6 @@ def main(ims_module):
     trainer = pl.Trainer(**trainer_kwargs)
     training_args = dict(model=l_module,
                          datamodule=dm)
-
-    if args.state_dict_file_name is not None and args.ckpt_path is not None:
-        sys.exit("both state-dict-file-name and ckpt-path are set!")
 
     if args.state_dict_file_name is not None:
         state_dict_path = os.path.join(pretrained_checkpoints_dir, args.state_dict_file_name)
@@ -373,14 +392,7 @@ def main(ims_module):
             l_module.cuboid_attention_model.load_state_dict(state_dict=state_dict)
             print(f"Using state dict {state_dict_path}")
 
-    if args.ckpt_path is not None:
-        if not os.path.exists(args.ckpt_path):
-            warnings.warn(f"checkpoint {args.ckpt_path} not exists!")
-        else:
-            print(f"Using checkpoint {args.ckpt_path}")
-            training_args.update(dict(ckpt_path=args.ckpt_path))
-
     if args.test:
-        trainer.test(training_args)
+        trainer.test(**training_args)
     else:
-        trainer.fit(training_args)
+        trainer.fit(**training_args)

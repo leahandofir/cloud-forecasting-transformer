@@ -19,7 +19,6 @@ class PredRNNIMSModule(IMSModule):
                  args: dict = None,
                  logging_dir: str = None):
         super(PredRNNIMSModule, self).__init__(args=args,
-                                               logging_dir=logging_dir,
                                                current_dir=os.path.dirname(__file__))
 
         # load predrnn model
@@ -83,7 +82,7 @@ class PredRNNIMSModule(IMSModule):
 
         return {'optimizer': optimizer}
 
-    def validation_step(self, batch, batch_idx):
+    def _get_y_hat_from_batch(self, batch):
         start_time, seq = batch
         seq = reshape_patch(seq, self.hparams.model.patch_size)
 
@@ -109,7 +108,15 @@ class PredRNNIMSModule(IMSModule):
                                               self.hparams.model.total_length - self.hparams.model.input_length)
         y_hat = reshape_patch_back(next_frames, self.hparams.model.patch_size)[:, -(self.hparams.model.total_length - self.hparams.model.input_length):]
 
+        return start_time, x, y, y_hat
+
+    def validation_step(self, batch, batch_idx):
+        start_time, x, y, y_hat = self._get_y_hat_from_batch(batch)
         self.compute_validation_loss(batch_idx, start_time, x, y, y_hat)
+
+    def test_step(self, batch, batch_idx):
+        start_time, x, y, y_hat = self._get_y_hat_from_batch(batch)
+        self.compute_test_loss(batch_idx, start_time, x, y, y_hat)
 
 
 if __name__ == "__main__":

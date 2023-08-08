@@ -18,7 +18,6 @@ class RainformerIMSModule(IMSModule):
                  args: dict = None,
                  logging_dir: str = None):
         super(RainformerIMSModule, self).__init__(args=args,
-                                                  logging_dir=logging_dir,
                                                   current_dir=os.path.dirname(__file__))
 
         # load rainformer model
