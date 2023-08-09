@@ -74,7 +74,7 @@ class IMSSkillScore(Metric):
         return hits, misses, fas
 
     def update(self, prediction, target):
-        # rescale
+        # unscale
         unscaled_prediction = prediction * 255.0 if self.scale else prediction * 1.0
         unscaled_target = target * 255.0 if self.scale else target * 1.0
 

@@ -10,11 +10,10 @@ from earthformer.utils.ims.vgg_ims import Vgg16
 from earthformer.utils.ims.load_ims import load_model, get_x_y_from_batch
 from earthformer.utils.ims.fss_ims import FSSLoss
 from earthformer.utils.ims.lpips_ims import preprocess as lpips_preprocess
-from earthformer.utils.ims.train_ims import IMSModule, main
-from earthformer.metrics.ims import IMSSkillScore
+from earthformer.train.train_ims import IMSModule, main
 
 import numpy as np
-import os, sys
+import os
 from pysteps.verification.spatialscores import fss_init, fss_accum, fss_compute
 
 
@@ -28,10 +27,11 @@ class CuboidIMSModule(IMSModule):
         # load cuboid attention model
         self.cuboid_attention_model = load_model(model_cfg=self.hparams.model)
         self.vgg_model = Vgg16() if \
-            (self.hparams.optim.vgg.enabled or self.hparams.optim.loss.coefficients.vgg > 0) else None
+            not args["test"] and (self.hparams.optim.vgg.enabled or self.hparams.optim.loss.coefficients.vgg > 0) else None
         self.lpips_loss = lpips.LPIPS(net=self.hparams.optim.lpips.net) if \
-            (self.hparams.optim.lpips.enabled or self.hparams.optim.loss.coefficients.lpips > 0) else None
-        self.fss_loss = FSSLoss(threshold=self.hparams.optim.fss.threshold,
+            not args["test"] and (self.hparams.optim.lpips.enabled or self.hparams.optim.loss.coefficients.lpips > 0) else None
+        self.fss_loss = None if args["test"] else \
+                        FSSLoss(threshold=self.hparams.optim.fss.threshold,
                                 scale=self.hparams.optim.fss.scale,
                                 smooth_factor=self.hparams.optim.fss.smooth_factor,
                                 hwc=self.hparams.model.hwc,

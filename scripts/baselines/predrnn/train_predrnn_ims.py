@@ -1,13 +1,12 @@
 from torch.optim import AdamW
 import torch
-import torchmetrics
 
 from earthformer.baselines.predrnn.predrnn import RNN
 from earthformer.baselines.predrnn.preprocess_patches import reshape_patch, reshape_patch_back
 from earthformer.baselines.predrnn.scheduling import reserve_schedule_sampling_exp, schedule_sampling
 from earthformer.utils.ims.load_ims import get_x_y_from_batch
 from earthformer.config import cfg
-from earthformer.utils.ims.train_ims import IMSModule, main
+from earthformer.train.train_ims import IMSModule, main
 
 import os
 

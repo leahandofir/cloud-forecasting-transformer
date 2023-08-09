@@ -1,0 +1,4 @@
+logging:
+  use_wandb: true
+  wandb:
+    project: "predrnn-results"

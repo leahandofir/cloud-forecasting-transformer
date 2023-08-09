@@ -1,15 +1,14 @@
 from torch.optim import AdamW
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 import torch
-import torchmetrics
 
 from earthformer.baselines.rainformer.rainformer import Net
 from earthformer.baselines.rainformer.loss import BMAEloss
 from earthformer.utils.ims.load_ims import get_x_y_from_batch
 from earthformer.config import cfg
-from earthformer.utils.ims.train_ims import IMSModule, main
+from earthformer.train.train_ims import IMSModule, main
 
-import os, sys
+import os
 
 pretrained_checkpoints_dir = cfg.pretrained_checkpoints_dir
 
@@ -72,13 +71,20 @@ class RainformerIMSModule(IMSModule):
 
         return {'optimizer': optimizer, 'lr_scheduler': lr_scheduler, 'monitor': 'val_loss_epoch'}
 
-    def validation_step(self, batch, batch_idx):
+    def _get_y_hat_from_batch(self, batch):
         # rainformer gets input of shape NTHW
         start_time, x, y = get_x_y_from_batch(batch, self.hparams.model.in_len, self.hparams.model.out_len)
         y_hat = self.rainformer_model(torch.squeeze(x, dim=-1))
         y_hat = torch.unsqueeze(y_hat, dim=-1)
+        return start_time, x, y, y_hat
 
+    def validation_step(self, batch, batch_idx):
+        start_time, x, y, y_hat = self._get_y_hat_from_batch(batch)
         self.compute_validation_loss(batch_idx, start_time, x, y, y_hat)
+
+    def test_step(self, batch, batch_idx):
+        start_time, x, y, y_hat = self._get_y_hat_from_batch(batch)
+        self.compute_test_loss(batch_idx, start_time, x, y, y_hat)
 
 if __name__ == "__main__":
     main(RainformerIMSModule)

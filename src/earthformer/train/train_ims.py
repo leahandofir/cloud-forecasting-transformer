@@ -25,6 +25,7 @@ import warnings
 import argparse
 
 FIRST_VERSION_NUM = 0
+VALIDATION_METRICS_WEIGHTS = {"csi": 1, "mae": 10, "mse": 100}
 
 class IMSModule(pl.LightningModule):
     def __init__(self,
@@ -70,13 +71,13 @@ class IMSModule(pl.LightningModule):
         if args["test"]:
             self.test_loss = IMSSkillScore(scale=self.hparams.dataset.preprocess.scale,
                                            threshold_list=self.hparams.optim.skill_score.threshold_list,
-                                           threshold_weights=self.hparams.optim.skill_score.threshold_weights,
-                                           metrics_list=self.hparams.optim.skill_score.metrics_list, )
+                                           threshold_weights=self.hparams.optim.skill_score.threshold_weights,)
         else:
             # all metrics
             self.validation_loss = IMSSkillScore(scale=self.hparams.dataset.preprocess.scale,
                                                  threshold_list=self.hparams.optim.skill_score.threshold_list,
-                                                 threshold_weights=self.hparams.optim.skill_score.threshold_weights,)
+                                                 threshold_weights=self.hparams.optim.skill_score.threshold_weights,
+                                                 metrics_list=self.hparams.optim.skill_score.metrics_list,)
 
     def _init_logging(self, logging_dir: str = None, results_dir: str = None, test: bool = False):
         # creates logging directories and adds their path as data members
@@ -89,7 +90,7 @@ class IMSModule(pl.LightningModule):
             os.makedirs(self.our_save_dir, exist_ok=True)
         else:
             if logging_dir is None:
-                logging_dir = os.path.join(self.current_dir, "logging")
+                logging_dir = os.path.join(self.current_dir, "../../../scripts/cuboid_transformer/ims/logging")
             self.save_dir = logging_dir
             os.makedirs(self.save_dir, exist_ok=True)
             self.our_save_dir = os.path.join(self.save_dir, "our_logs")
@@ -273,14 +274,21 @@ class IMSModule(pl.LightningModule):
         return dm
 
     def _log_val_loss(self, loss, step=True, mode="val"):
+        # set parameters considering the mode
+        metrics_list = ["csi", "mae", "mse"] if mode == "test" else self.hparams.optim.skill_score.metrics_list
         label = "step" if step else "epoch"
         logging_params = dict(on_step=True, on_epoch=False) if step else dict(sync_dist=True, on_epoch=True)
 
-        self.log(f'{mode}_loss_{label}', torch.mean(loss), **logging_params)
-        val_loss_labels = [f"{mode}_{label}_{s}" for s in self.hparams.optim.skill_score.metrics_list]
-
         detached_loss = self._torch_to_numpy(loss)
-        if len(self.hparams.optim.skill_score.metrics_list) > 1:
+
+        # calculate validation/test score over all considered metrics after normalizing the units
+        self.log(f'{mode}_loss_{label}', np.mean([detached_loss[i] * VALIDATION_METRICS_WEIGHTS[label] for i, label \
+                                                     in enumerate(metrics_list)]), **logging_params)
+
+        # log each metric separately
+        val_loss_labels = [f"{mode}_{label}_{s}" for s in metrics_list]
+
+        if len(metrics_list) > 1:
             self.log_dict(dict(zip(val_loss_labels, detached_loss)), **logging_params)
         else:
             self.log(val_loss_labels[0], float(detached_loss), **logging_params)
@@ -330,6 +338,7 @@ class IMSModule(pl.LightningModule):
         epoch_loss = self.test_loss.compute()
         self._log_val_loss(epoch_loss, step=False, mode="test")
         self.test_loss.reset()
+
 
 def get_parser():
     parser = argparse.ArgumentParser()
