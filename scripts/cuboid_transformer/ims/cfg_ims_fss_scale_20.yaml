@@ -61,11 +61,19 @@ optim:
     scale: 20
     smooth_factor: 20
     strategy: "tanh"
-  loss_coefficients:
-    mse: 0.0
-    vgg: 0.0
-    fss: 1.0
-    lpips: 0.0
+  loss_warmup:
+    epochs: 0
+    coefficients:
+      mse: 1.0
+      vgg: 0.0
+      fss: 0.0
+      lpips: 0.0
+  loss:
+    coefficients:
+      mse: 0.0
+      vgg: 0.0
+      fss: 1.0
+      lpips: 0.0
 
 logging:
   logging_prefix: "Cuboid_IMS"
