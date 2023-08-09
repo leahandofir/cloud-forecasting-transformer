@@ -389,8 +389,7 @@ def main(ims_module):
     # set trainer
     trainer_kwargs = l_module.get_trainer_kwargs(args.gpus)
     trainer = pl.Trainer(**trainer_kwargs)
-    training_args = dict(model=l_module,
-                         datamodule=dm)
+    training_args.update(dict(model=l_module, datamodule=dm))
 
     if args.state_dict_file_name is not None:
         state_dict_path = os.path.join(pretrained_checkpoints_dir, args.state_dict_file_name)

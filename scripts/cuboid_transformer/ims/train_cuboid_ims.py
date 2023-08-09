@@ -26,12 +26,10 @@ class CuboidIMSModule(IMSModule):
 
         # load cuboid attention model
         self.cuboid_attention_model = load_model(model_cfg=self.hparams.model)
-        self.vgg_model = Vgg16() if \
-            not args["test"] and (self.hparams.optim.vgg.enabled or self.hparams.optim.loss.coefficients.vgg > 0) else None
+        self.vgg_model = Vgg16() if (self.hparams.optim.vgg.enabled or self.hparams.optim.loss.coefficients.vgg > 0) else None
         self.lpips_loss = lpips.LPIPS(net=self.hparams.optim.lpips.net) if \
-            not args["test"] and (self.hparams.optim.lpips.enabled or self.hparams.optim.loss.coefficients.lpips > 0) else None
-        self.fss_loss = None if args["test"] else \
-                        FSSLoss(threshold=self.hparams.optim.fss.threshold,
+            (self.hparams.optim.lpips.enabled or self.hparams.optim.loss.coefficients.lpips > 0) else None
+        self.fss_loss = FSSLoss(threshold=self.hparams.optim.fss.threshold,
                                 scale=self.hparams.optim.fss.scale,
                                 smooth_factor=self.hparams.optim.fss.smooth_factor,
                                 hwc=self.hparams.model.hwc,
