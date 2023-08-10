@@ -205,7 +205,7 @@ class IMSPreprocess:
     def __init__(self, grayscale=False, crop={}, scale=True, data_type=torch.float32):
         # build the transformation function according to the parameters
         # convert (H x W x C) to a Tensor (C x H x W)
-        relevant_transforms = [transforms.ToTensor()]
+        relevant_transforms = [transforms.Lambda(lambda t: torch.permute(torch.Tensor(t), (2, 0, 1)))]
 
         # scaling to [0.0, 1.0] (or not)
         if scale:
