@@ -4,18 +4,24 @@ import numpy as np
 from matplotlib import pyplot as plt
 import pysteps
 
+
 class IMSVisualize:
     def __init__(self,
                  save_dir: str = "./",
-                 scale: bool = True,
                  fs: int = None,
                  figsize: tuple = None,
                  plot_stride: int = None,
-                 cmap: str = "default"
+                 cmap: str = None
                  ):
-
+        """
+        The settings of the model output visualizations:
+        - save_dir is the directory in which the images are saved.
+        - fs is the font size.
+        - figsize is the size of each frame.
+        - plot_stride is the frequency of which frames are plotted.
+        - cmap is the color map used.
+        """
         self.save_dir = save_dir
-        self.scale = 255 if scale else 1
 
         if fs is None:
             fs = 10
@@ -29,16 +35,18 @@ class IMSVisualize:
             plot_stride = 2
         self.plot_stride = plot_stride
 
+        if cmap is None:
+            self.cmap = "gray"
         if cmap == "pysteps":
             self.cmap = pysteps.visualization.precipfields.get_colormap(ptype='prob', colorscale='pysteps')[0]
-        if cmap == "default":
-            self.cmap = None
+        else:
+            self.cmap = cmap
 
     def _plot_seq(self, ax, row, label, seq, seq_len, max_len):
         ax[row][0].set_ylabel(label, fontsize=self.fs)
         for i in range(0, max_len, self.plot_stride):
             if i < seq_len:
-                xt = seq[i, :, :, :] * self.scale
+                xt = seq[i, :, :, :]
                 ax[row][i // self.plot_stride].imshow(xt, cmap=self.cmap)
             else:
                 ax[row][i // self.plot_stride].axis('off')
@@ -50,12 +58,7 @@ class IMSVisualize:
                           time_delta: int = 5,
                           target_seq: np.array = None,
                           ):
-        """
-        in_seq, target_seq are from shape THWC.
-        pred_seq_list is a list of sequences from shape THWC.
-        All sequences have to be at the same dimensions as the target sequence.
-        It is not mandatory to plot the target sequence, if target_seq is None the target is not plotted.
-        """
+
         # determine amount of subplots
         in_len = in_seq.shape[0]
         out_len = pred_seq_list[0].shape[0]
@@ -90,10 +93,20 @@ class IMSVisualize:
                      save_prefix,
                      in_seq: np.array,
                      pred_seq_list: List[np.array],
+                     target_seq: np.array = None,
                      label_list: List[str] = ["cuboid_ims"],
                      time_delta: int = 5,
-                     target_seq: np.array = None,
                      ):
+        """
+        in_seq, target_seq are from shape THWC.
+        pred_seq_list is a list of sequences from shape THWC.
+        All sequences have to be at the same dimensions as the target sequence.
+        All values have to be scaled, meaning between 0 and 1.
+        It is not mandatory to plot the target sequence, if target_seq is None the target is not plotted.
+
+        The label_list[i] describes the prediction at pred_seq_list[i].
+        The time_delta is the time difference between each two frames in the sequence and will be written as label.
+        """
         fig_path = os.path.join(self.save_dir, f'{save_prefix}.png')
 
         fig, ax = self._visualize_result(

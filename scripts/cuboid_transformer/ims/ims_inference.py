@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 
 import torch
 
-from earthformer.utils.ims.load import load_model
+from earthformer.utils.ims.load_ims import load_model
 from earthformer.config import cfg
 from earthformer.datasets.ims.ims_dataset import IMSPreprocess
 from earthformer.visualization.ims.ims_visualize import IMSVisualize
@@ -27,6 +27,7 @@ class CuboidIMSInference:
                  fs: int,
                  figsize: tuple,
                  plot_stride: int,
+                 cmap: str,
                  left: int,
                  top: int,
                  width: int,
@@ -42,6 +43,7 @@ class CuboidIMSInference:
         fs: The font size in the summary.
         figsize: The size of the images in the summary.
         plot_stride: The "jumps" between frames in the summary.
+        cmap: the cmap that is used for the images in the summary.
         left, top, width, height: Crop input images parameters.
         """
         self.ckpt_name = ckpt_name
@@ -93,6 +95,7 @@ class CuboidIMSInference:
         self.fs = fs
         self.figsize = figsize
         self.plot_stride = plot_stride
+        self.cmap = cmap
 
         # inference constraints
         self.in_len = model_cfg["in_len"]
@@ -115,7 +118,7 @@ class CuboidIMSInference:
 
             if self.img_format == "png":
                 h, w, raw_pixels = png.Reader(file=open(frame_path, "rb")).asRGBA8()[:3]
-                pixels = np.array([list(row) for row in raw_pixels], dtype="uint8").reshape((h, w, 4))
+                pixels = np.array([list(row) for row in raw_pixels], dtype="float32").reshape((h, w, 4))
                 raw_x.append(pixels)
                 curr_time += time_delta
 
@@ -123,10 +126,10 @@ class CuboidIMSInference:
 
     def _save_visualization(self, x, y):
         visualize = IMSVisualize(save_dir=self.output_dir,
-                                 scale=self.scale,
                                  fs=self.fs,
                                  figsize=self.figsize,
-                                 plot_stride=self.plot_stride)
+                                 plot_stride=self.plot_stride,
+                                 cmap=self.cmap)
         visualize.save_example(
             save_prefix=f'prediction_from_{self.start_time.strftime(IMAGE_NAME_FORMAT)}_with_ckpt_{self.ckpt_name}',
             in_seq=x,
@@ -139,6 +142,9 @@ class CuboidIMSInference:
         x = self._preprocess(raw_x)
         y = self.model(x)
         # the batch size is 1, detach from model
+        # clip predicted values to be between 0 and 1
+        y = torch.clip(y, min=0.0, max=1.0)
+        # save output
         self._save_visualization(x[0].detach().numpy(), y[0].detach().numpy())
 
     def _preprocess(self, raw_x):
@@ -172,6 +178,8 @@ def get_parser():
                         help=f"the figure size of the visualization of the output.")
     parser.add_argument('--plot-stride', default=None, type=int,
                         help=f"the plot stride in the visualization of the output.")
+    parser.add_argument('--cmap', default=None, type=str,
+                        help=f"the cmap of the images in the visualization.")
     parser.add_argument('--left', default=None, type=int,
                         help=f"set where to start cropping the image from the left."
                              f"if not set, taken from checkpoint.")
