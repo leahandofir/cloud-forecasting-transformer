@@ -11,7 +11,7 @@ class IMSVisualize:
                  fs: int = None,
                  figsize: tuple = None,
                  plot_stride: int = None,
-                 cmap: str = "default"
+                 cmap: str = None
                  ):
         """
         The settings of the model output visualizations:
@@ -35,10 +35,12 @@ class IMSVisualize:
             plot_stride = 2
         self.plot_stride = plot_stride
 
+        if cmap is None:
+            self.cmap = "gray"
         if cmap == "pysteps":
             self.cmap = pysteps.visualization.precipfields.get_colormap(ptype='prob', colorscale='pysteps')[0]
-        if cmap == "default":
-            self.cmap = "gray"
+        else:
+            self.cmap = cmap
 
     def _plot_seq(self, ax, row, label, seq, seq_len, max_len):
         ax[row][0].set_ylabel(label, fontsize=self.fs)
