@@ -114,7 +114,6 @@ class IMSModule(pl.LightningModule):
 
         # get visualization config
         self.visualize = IMSVisualize(save_dir=self.examples_dir,
-                                      scale=self.hparams.dataset.preprocess.scale,
                                       fs=self.hparams.logging.visualize.fs,
                                       figsize=self.hparams.logging.visualize.figsize,
                                       plot_stride=self.hparams.logging.visualize.plot_stride,
@@ -222,7 +221,7 @@ class IMSModule(pl.LightningModule):
             pred_seq_list: torch.Tensor,
             mode: str = "train"):
 
-        # determine which examples are candidates to vizualize
+        # determine which examples are candidates to visualize
         if mode == "train":
             example_data_idx_list = self.hparams.logging.visualize.train_example_data_idx_list
         elif mode == "val":
@@ -233,13 +232,9 @@ class IMSModule(pl.LightningModule):
             raise ValueError(f"Wrong mode {mode}! Must be in ['train', 'val', 'test'].")
 
         # convert to numpy and clip the values
-        a_max = 255.0
-        if self.hparams.dataset.preprocess.scale:
-            a_max = 1.0
-
-        in_seq = np.clip(self._torch_to_numpy(in_seq), a_min=0.0, a_max=a_max)
-        target_seq = np.clip(self._torch_to_numpy(target_seq), a_min=0.0, a_max=a_max)
-        pred_seq_list = np.clip(self._torch_to_numpy(pred_seq_list), a_min=0.0, a_max=a_max)
+        in_seq = np.clip(self._torch_to_numpy(in_seq), a_min=0.0, a_max=1.0)
+        target_seq = np.clip(self._torch_to_numpy(target_seq), a_min=0.0, a_max=1.0)
+        pred_seq_list = np.clip(self._torch_to_numpy(pred_seq_list), a_min=0.0, a_max=1.0)
         start_time = datetime.fromtimestamp(seq_start_time.item())
         time_delta = timedelta(minutes=self.hparams.dataset.time_delta)
 

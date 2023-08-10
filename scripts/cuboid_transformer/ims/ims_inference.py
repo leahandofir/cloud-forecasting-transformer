@@ -139,6 +139,9 @@ class CuboidIMSInference:
         x = self._preprocess(raw_x)
         y = self.model(x)
         # the batch size is 1, detach from model
+        # clip predicted values to be between 0 and 1
+        y = torch.clip(y, min=0.0, max=1.0)
+        # save output
         self._save_visualization(x[0].detach().numpy(), y[0].detach().numpy())
 
     def _preprocess(self, raw_x):
