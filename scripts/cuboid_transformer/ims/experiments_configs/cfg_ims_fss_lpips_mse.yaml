@@ -31,7 +31,7 @@ optim:
   num_workers: 12 # 1/2 the amount of cores
   method: "adamw"
   lr: 0.00025
-  wd: 0.0
+  wd: 1.0
   gradient_clip_val: 1.0
   max_epochs: 100
   # scheduler
@@ -58,11 +58,11 @@ optim:
     layer: relu4_3
   fss:
     threshold: 160
-    scale: 10
+    scale: 5
     smooth_factor: 20
     strategy: "tanh"
   loss_warmup:
-    epochs: 0
+    epochs: 1
     coefficients:
       mse: 1.0
       vgg: 0.0
@@ -70,10 +70,10 @@ optim:
       lpips: 0.0
   loss:
     coefficients:
-      mse: 0.5
+      mse: 100.0
       vgg: 0.0
-      fss: 0.0
-      lpips: 0.5
+      fss: 10.0
+      lpips: 2.0
 
 logging:
   logging_prefix: "Cuboid_IMS"
@@ -104,7 +104,7 @@ trainer:
   fss:
     enabled: true
     threshold: 160
-    scale: 10
+    scale: 5
 
 model:
   model_name: cuboid_attention_model

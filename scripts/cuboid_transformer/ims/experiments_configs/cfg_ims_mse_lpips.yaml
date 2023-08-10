@@ -70,10 +70,10 @@ optim:
       lpips: 0.0
   loss:
     coefficients:
-      mse: 0.5
+      mse: 100.0
       vgg: 0.0
       fss: 0.0
-      lpips: 0.5
+      lpips: 1.0
 
 logging:
   logging_prefix: "Cuboid_IMS"
