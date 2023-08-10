@@ -27,7 +27,6 @@ if VERSION.endswith('dev'):
 
 requirements = [
     'absl-py',
-    'boto3',
     'javalang>=0.13.0',
     'h5py>=2.10.0',
     'yacs>=0.1.8',
@@ -40,7 +39,6 @@ requirements = [
     'jsonlines',
     'contextvars',
     'pyarrow>=3',
-    'transformers>=4.3.0',
     'tensorboard',
     'pandas',
     'contextvars;python_version<"3.7"',  # Contextvars for python <= 3.6
@@ -52,7 +50,6 @@ requirements = [
     'fvcore>=0.1.5',
     'pympler',
     'einops>=0.3.0',
-    'timm',
     'omegaconf',
     'matplotlib',
     'awscli',
