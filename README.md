@@ -21,6 +21,7 @@ wandb login
 ```
 
 ### Inferencing
+The inference was tested on windows only.
 Clone the repository and install requirements:
 ```
 git clone https://github.com/leahandofir/cloud-forecasting-transformer.git
