@@ -115,7 +115,7 @@ class CuboidIMSInference:
 
             if self.img_format == "png":
                 h, w, raw_pixels = png.Reader(file=open(frame_path, "rb")).asRGBA8()[:3]
-                pixels = np.array([list(row) for row in raw_pixels], dtype="uint8").reshape((h, w, 4))
+                pixels = np.array([list(row) for row in raw_pixels], dtype="float32").reshape((h, w, 4))
                 raw_x.append(pixels)
                 curr_time += time_delta
 
