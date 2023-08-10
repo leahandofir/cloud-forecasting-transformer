@@ -126,7 +126,6 @@ class CuboidIMSInference:
 
     def _save_visualization(self, x, y):
         visualize = IMSVisualize(save_dir=self.output_dir,
-                                 scale=self.scale,
                                  fs=self.fs,
                                  figsize=self.figsize,
                                  plot_stride=self.plot_stride,
@@ -179,7 +178,7 @@ def get_parser():
                         help=f"the figure size of the visualization of the output.")
     parser.add_argument('--plot-stride', default=None, type=int,
                         help=f"the plot stride in the visualization of the output.")
-    parser.add_argument('--cmap', default=None, type=int,
+    parser.add_argument('--cmap', default=None, type=str,
                         help=f"the cmap of the images in the visualization.")
     parser.add_argument('--left', default=None, type=int,
                         help=f"set where to start cropping the image from the left."
