@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 
 import torch
 
-from earthformer.utils.ims.load import load_model
+from earthformer.utils.ims.load_ims import load_model
 from earthformer.config import cfg
 from earthformer.datasets.ims.ims_dataset import IMSPreprocess
 from earthformer.visualization.ims.ims_visualize import IMSVisualize
