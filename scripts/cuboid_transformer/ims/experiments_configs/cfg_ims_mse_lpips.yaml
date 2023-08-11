@@ -46,7 +46,7 @@ optim:
   # checkpoints
   save_top_k: 3
   skill_score:
-    metrics_list: [ 'csi', 'mae' ]
+    metrics_list: [ 'csi', 'mae', 'mse' ]
     threshold_list: [ 145, 160, 180, 200, 220 ]
     threshold_weights: null
   # loss
