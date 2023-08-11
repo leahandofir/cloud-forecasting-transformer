@@ -70,7 +70,7 @@ optim:
       lpips: 0.0
   loss:
     coefficients:
-      mse: 100.0
+      mse: 10.0
       vgg: 0.0
       fss: 0.0
       lpips: 1.0
