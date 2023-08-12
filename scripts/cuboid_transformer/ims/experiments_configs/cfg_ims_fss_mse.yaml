@@ -51,7 +51,7 @@ optim:
     threshold_weights: null
   # loss
   lpips:
-    enabled: true
+    enabled: false
     net: "vgg"
   vgg:
     enabled: false
