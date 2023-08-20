@@ -41,6 +41,9 @@ TODO: how to train? basic example on our model.
 | PredRNN | | | |
 | Rainformer | | | |
 
+## Inferencing
+TODO: write basic example.
+
 ## Credits
 ©EUMETSAT 2023
 
