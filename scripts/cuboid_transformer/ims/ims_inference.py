@@ -21,7 +21,7 @@ pretrained_checkpoints_dir = cfg.pretrained_checkpoints_dir
 
 class CuboidIMSInference:
     def __init__(self,
-                 ckpt_name: str,
+                 ckpt: str,
                  data_dir: str,
                  start_time: str,
                  fs: int,
@@ -35,7 +35,7 @@ class CuboidIMSInference:
                  img_format: str = 'png',
                  output_dir: str = './'):
         """
-        ckpt_name: The name of the checkpoint we want to load in pretrained_checkpoints directory.
+        ckpt: The path of the checkpoint we want to load.
         data_dir: The path of directory containing the images.
         start_time: The time of the first frame in the sequence.
         img_format: The file format of the images.
@@ -46,12 +46,12 @@ class CuboidIMSInference:
         cmap: the cmap that is used for the images in the summary.
         left, top, width, height: Crop input images parameters.
         """
-        self.ckpt_name = ckpt_name
+        self.ckpt = ckpt
+        self.ckpt_name = os.path.basename(ckpt)
 
         # load model
-        ckpt_path = os.path.join(pretrained_checkpoints_dir, ckpt_name)
-        if os.path.exists(ckpt_path):
-            checkpoint = torch.load(ckpt_path, map_location=torch.device('cpu'))
+        if os.path.exists(ckpt):
+            checkpoint = torch.load(ckpt, map_location=torch.device('cpu'))
         else:
             print("The ckpt file path does not exist!")
             sys.exit()
@@ -159,7 +159,7 @@ class CuboidIMSInference:
 
 def get_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--ckpt-name', default=None, type=str, required=True,
+    parser.add_argument('--ckpt', default=None, type=str, required=True,
                         help="the checkpoint of the model we want to inference with."
                              "the checkpoint file is expected to be in the pretrained_checkpoints dir.")
     parser.add_argument('--data-dir', default=None, type=str, required=True,
