@@ -1,6 +1,7 @@
 ## Cloud Forcasting Transformer
 
-## Tutorials
+## Dataset
+TODO: write
 
 ## Installation
 ### Training
@@ -21,6 +22,7 @@ wandb login
 ```
 
 ### Inferencing
+The inference was tested on windows only.
 Clone the repository and install requirements:
 ```
 git clone https://github.com/leahandofir/cloud-forecasting-transformer.git
@@ -29,33 +31,26 @@ pip install -r inference_requirements.txt
 python3 -m pip install -U -e . --no-build-isolation --extra-index-url --trusted-host
 ```
 Run inference script at scripts/cuboid_transformer/ims/ims_inference.py.
-## Dataset
-Our dataset is not available online since we collected the dataon local disk.
-### VIS vs. IR
 
-### EUMESAT
+## Cloudformer and Baselines Training
+TODO: how to train? basic example on our model.
 
-## Cloudformer Training
-Find detailed instructions in the corresponding training script folder
-- [IMS](./scripts/cuboid_transformer/ims/README.md) #TODO: write instructions
-
-## Training Script and Pretrained Models
-
-Find detailed instructions in how to train the models or running inference with our pretrained models in the corresponding script folder.
-
-| Dataset       | Script Folder                                            | Pretrained Weights                                                                                                     | Config                                                                              |
+| Model       | Script Folder                                            | Pretrained Weights                                                                                                     | Config                                                                              |
 |---------------|----------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------|
-| SEVIR         | [scripts](./scripts/cuboid_transformer/sevir)            | [link](https://deep-earth.s3.amazonaws.com/experiments/earthformer/pretrained_checkpoints/earthformer_sevir.pt)        | [config](./scripts/cuboid_transformer/sevir/earthformer_sevir_v1.yaml)              |
+| cloud-forcasting-transformer         | [train_cuboid_ims.py](./scripts/cuboid_transformer/ims/train_cuboid_ims.py)            | TODO!        | [ims_cfg.yaml](./scripts/cuboid_transformer/ims/ims_cfg.yaml)              |
+| PredRNN | | | |
+| Rainformer | | | |
+
+## Inferencing
+TODO: write basic example.
 
 ## Credits
 ©EUMETSAT 2023
-Copyright
-Unless otherwise noted, you may download and copy content from the EUMETSAT website(s) for your own personal and non-commercial use. For any other use of the content, you must request authorisation from EUMETSAT. 
 
 Earthformer: https://github.com/amazon-science/earth-forecasting-transformer
 
 SEVIR: https://sevir.mit.edu/
 
-## Baselines
 PredRNN: https://github.com/thuml/predrnn-pytorch
+
 Rainformer: https://github.com/Zjut-MultimediaPlus/Rainformer
