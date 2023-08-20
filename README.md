@@ -37,7 +37,7 @@ TODO: how to train? basic example on our model.
 
 | Model       | Script Folder                                            | Pretrained Weights                                                                                                     | Config                                                                              |
 |---------------|----------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------|
-| cloud-forcasting-transformer         | [scripts](./scripts/cuboid_transformer/ims)            | TODO!        | [config](./scripts/cuboid_transformer/ims/ims_cfg.yaml)              |
+| cloud-forcasting-transformer         | [train_cuboid_ims.py](./scripts/cuboid_transformer/ims/train_cuboid_ims.py)            | TODO!        | [ims_cfg.yaml](./scripts/cuboid_transformer/ims/ims_cfg.yaml)              |
 | PredRNN | | | |
 | Rainformer | | | |
 
