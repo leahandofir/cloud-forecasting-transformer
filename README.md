@@ -1,6 +1,7 @@
 ## Cloud Forcasting Transformer
 
-## Tutorials
+## Dataset
+TODO: write
 
 ## Installation
 ### Training
@@ -31,11 +32,9 @@ python3 -m pip install -U -e . --no-build-isolation --extra-index-url --trusted-
 ```
 Run inference script at scripts/cuboid_transformer/ims/ims_inference.py.
 
-## Dataset
-TODO: write
-
 ## Cloudformer and Baselines Training
-Find detailed instructions in how to train the models with our pretrained models in the corresponding script folder.
+TODO: how to train? basic example on our model.
+
 | Model       | Script Folder                                            | Pretrained Weights                                                                                                     | Config                                                                              |
 |---------------|----------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------|
 | cloud-forcasting-transformer         | [scripts](./scripts/cuboid_transformer/ims)            | TODO!        | [config](./scripts/cuboid_transformer/ims/ims_cfg.yaml)              |
@@ -44,8 +43,6 @@ Find detailed instructions in how to train the models with our pretrained models
 
 ## Credits
 ©EUMETSAT 2023
-Copyright
-Unless otherwise noted, you may download and copy content from the EUMETSAT website(s) for your own personal and non-commercial use. For any other use of the content, you must request authorisation from EUMETSAT. 
 
 Earthformer: https://github.com/amazon-science/earth-forecasting-transformer
 
