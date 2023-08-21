@@ -44,7 +44,7 @@ optim:
   early_stop_mode: "min"
   early_stop_patience: 20
   # checkpoints
-  save_top_k: 3
+  save_top_k: 6
   skill_score:
     metrics_list: [ 'csi', 'mae', 'mse' ]
     threshold_list: [ 145, 160, 180, 200, 220 ]
