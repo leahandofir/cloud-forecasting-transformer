@@ -160,8 +160,7 @@ class CuboidIMSInference:
 def get_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--ckpt', default=None, type=str, required=True,
-                        help="the checkpoint of the model we want to inference with."
-                             "the checkpoint file is expected to be in the pretrained_checkpoints dir.")
+                        help="the checkpoint of the model we want to inference with.")
     parser.add_argument('--data-dir', default=None, type=str, required=True,
                         help="the path where the images are at. "
                              f"the images name has to be in the following format {IMAGE_NAME_FORMAT}."
