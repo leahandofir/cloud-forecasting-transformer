@@ -7,12 +7,16 @@ We train the Earthformer on our original dataset composed of satellite images pr
 The model's input is a sequence of 13 satellite images taken 15 minutes apart. The model's output is 12 images that
 represent the prediction of the next satellite images following the input sequence.
 
+<center>
+
 |  Input  |  Target  | Prediction |
 |:-------------------------:|:-------------------------:|:-------------------------:|
 |  <img src="./images_for_readme/test_0_input.gif" width="200"/>  |  <img src="./images_for_readme/test_0_target.gif" width="200"/>  |  <img src="./images_for_readme/test_0_lpips_wd.gif" width="200"/>  |
 
+</center>
+
 ## Installation
-### Training
+### Train
 Install CUDA (We had CUDA 11.7 or 11.8 installed): https://developer.nvidia.com/cuda-downloads
 
 Clone the repository and install requirements:
@@ -29,7 +33,7 @@ pip install wandb
 wandb login
 ```
 
-### Inferencing <span style="color:red">(I think it should be just 'Inference' without 'ing')</span>.
+### Inference
 The inference was tested on windows only.
 Clone the repository and install requirements:
 ```
@@ -49,48 +53,21 @@ TODO: how to train? basic example on our model.
 | PredRNN | [train_predrnn_ims.py](./scripts/baselines/predrnn/train_predrnn_ims.py)          | | [ims_cfg.yaml](./scripts/baselines/predrnn/ims_cfg.yaml)      |
 | Rainformer | [train_rainformer_ims.py](./scripts/baselines/rainformer/train_rainformer_ims.py) | | [ims_cfg.yaml](./scripts/baselines/rainformer/ims_cfg.yaml)   |
 
-## Inferencing
+## Inference
 
-The inference script is scripts/cuboid_transformer/ims/ims_inference.py. Prior to execution, one must prepare:  
+The inference script is located at [ims_inference.py](scripts/cuboid_transformer/ims/ims_inference.py). Prior to execution, one must prepare:  
 &ndash; A checkpoint file of a trained model.  
-&ndash; A directory with the input sequence in PNG format and the naming convention %Y%m%d%H%M.png
+&ndash; A directory with the input sequence in PNG format and the naming convention *`%Y%m%d%H%M.png`*.
 
-An example of a proper execution of the inference script is:
+A simple example of inference is as follows:
 ```
-python scripts/cuboid_transformer/ims/ims_inference.py --ckpt [path-to-ckpt-file] --data-dir [path-to-data-dir] --start-time YYYYMMDDHHMM
+python scripts/cuboid_transformer/ims/ims_inference.py --ckpt [path-to-ckpt-file] --data-dir [path-to-data-dir] --start-time [time-in-format-%Y%m%d%H%M]
 ```
 
-The full argument list is below:
+You can read more about the possible arguments in [ims_inference](./scripts/cuboid_transformer/ims/README.md).
 
-**`--ckpt (required)`**: the checkpoint of the model we want to inference with. 
 
-**`--data-dir (required)`**: the path where the images are at (in the format %Y%m%d%H%M). the image files has to be in PNG format.
-
-**`--start-time (required)`**: the time of the first frame in the input (in the format %Y%m%d%H%M).
-
-**`--output-dir`** (default="./"): the path where the inference will be saved at.
-
-**`--img-format`** (default="png"): the format of the input images.
-
-**`--fs`**: the font size in the visualization of the output.
-
-**`--figsize`**: the figure size of the visualization of the output.
-
-**`--plot-stride`**: the plot stride in the visualization of the output (meaning 'how many frames we skip when displaying the output'
-
-**`--cmap`**: a pyplot-supported color map for the visualization of the output.
-
-**`--left`**: set where to start cropping the image from the left. If not set, taken from checkpoint.
-
-**`--top`**: set where to start cropping the image from the top. If not set, taken from checkpoint.
-
-**`--width`**: set the width of the cropped image. If not set, taken from checkpoint.
-
-**`--height`**: set the height of the cropped image. If not set, taken from checkpoint.
-
-<br>
-
-The script's output is an image in this format (the first row is the input sequence, and the second row is the model's prediction):
+The script outputs a PNG file that contains the prediction for the given input (the first row is the input sequence, and the second row is the model's prediction):
 
 ![](./images_for_readme/inference_output.png)
 
