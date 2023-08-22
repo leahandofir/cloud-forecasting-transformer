@@ -1,20 +1,21 @@
 dataset:
   dataset_name: "ims"
   img_type: "MIDDLE_EAST_IR"
-  seq_len: 10 #total_len
-  raw_seq_len: 72 # TODO: change this to big dataset
-  stride: 5
+  seq_len: 25
+  raw_seq_len: 45
+  stride: 12
   layout: "THWC"
   raw_img_shape: [600, 600, 1]
   batch_layout: "NTHWC"
-  ims_catalog: null
-  ims_data_dir: null
-  start_date: [2023, 1, 1]
-  train_val_split_date: [2023, 2, 1]
-  train_test_split_date: [2023, 3, 1]
-  end_date: [2023, 4, 1]
-  time_delta: 10
-  raw_time_delta: 5
+  ims_catalog: "/home/theator/leah/cloud-forecasting-transformer/datasets/ims/data_IR_NOT_RSS/CATALOG.csv"
+  ims_data_dir: "/home/theator/leah/cloud-forecasting-transformer/datasets/ims/data_IR_NOT_RSS/data"
+  start_date: [ 2018, 1, 1 ]
+  train_val_split_date: [ 2022, 9, 1 ]
+  train_test_split_date: [ 2023, 1, 1 ]
+  end_date: [ 2023, 10, 1 ]
+  time_delta: 15
+  raw_time_delta: 15
+  shuffle: true
   preprocess:
     grayscale: true
     crop:
@@ -25,23 +26,23 @@ dataset:
     scale: true
 
 optim:
-  total_batch_size: 8
+  total_batch_size: 16
   micro_batch_size: 1
-  num_workers: 2
+  num_workers: 8
   seed: 0
   method: "adamw"
   lr: 0.0003
   wd: 0.0
   gradient_clip_val: 1.0
-  max_epochs: 10
+  max_epochs: 100
   # early stopping
   early_stop: true
   early_stop_mode: "min"
   early_stop_patience: 20
   # checkpoints
-  save_top_k: 3
+  save_top_k: 6
   skill_score:
-    metrics_list: [ 'csi', 'mae' ]
+    metrics_list: [ 'csi', 'mae', 'mse' ]
     threshold_list: [ 145, 160, 180, 200, 220 ]
     threshold_weights: null
 
