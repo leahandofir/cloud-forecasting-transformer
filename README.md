@@ -43,7 +43,6 @@ cd cloud-forecasting-transformer
 pip install -r inference_requirements.txt
 python3 -m pip install -U -e . --no-build-isolation --extra-index-url --trusted-host
 ```
-Run inference script at scripts/cuboid_transformer/ims/ims_inference.py.
 
 ## Cloudformer and Baselines Training
 TODO: how to train? basic example on our model.
