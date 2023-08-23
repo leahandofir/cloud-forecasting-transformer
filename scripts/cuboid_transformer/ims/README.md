@@ -1,7 +1,3 @@
-## Train
-
-TODO
-
 ## Inference
 
 The full argument list for *ims_inference.py* is as follows: 
