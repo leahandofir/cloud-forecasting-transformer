@@ -61,7 +61,7 @@ python ./scripts/cuboid_transformer/ims/train_cuboid_ims.py --ckpt best.ckpt
 
 Although not recommended, if one wants to override the hyperparameters in the .ckpt file, it can be done by giving a .yaml configuration file which overrides only the desired attributes. For example: 
 
-`additional_cfg.yaml`:
+**additional_cfg.yaml:**
 ```
 optim:
   save_top_k: 8
@@ -69,7 +69,7 @@ logging:
   wandb:
     project: "cloud-forecasting-transformer-try”
 ```  
-`command`:
+**command:**
 ```
 python ./scripts/cuboid_transformer/ims/train_cuboid_ims.py --ckpt best.ckpt --cfg additional_cfg.yaml
 ```
