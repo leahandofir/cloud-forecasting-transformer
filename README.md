@@ -45,7 +45,39 @@ python3 -m pip install -U -e . --no-build-isolation --extra-index-url --trusted-
 ```
 
 ## Cloudformer and Baselines Training
-TODO: how to train? basic example on our model.
+We have a different training script for the Cloudformer model and for each one of the baselines. All training scripts inherit from [ims_train.py](src/earthformer/train/train_ims.py) which defines the logging, validation metrics, shared training paramerers (like early stopping) and `main()` function. The training scripts are located [here](./scripts/) and vary in the loss functions used and other training parameters. 
+
+A simple example of training is as follows: 
+```
+python ./scripts/cuboid_transformer/ims/train_cuboid_ims.py --cfg [cfg_ims.yaml]
+``` 
+
+The training receives a configuration file in YAML format that defines the data train/test split and other training hyperparameters like the learning rate. An example of a configuration file is [cfg_ims.yaml](./scripts/cuboid_transformer/ims/cfg_ims.yaml). 
+
+When training from a checkpoint, a .ckpt file needs to be provided:
+```
+python ./scripts/cuboid_transformer/ims/train_cuboid_ims.py --ckpt best.ckpt
+```
+
+Although not recommended, if one wants to override the hyperparameters in the .ckpt file, it can be done by giving a .yaml configuration file which overrides only the desired attributes. For example: 
+
+`additional_cfg.yaml`:
+```
+optim:
+  save_top_k: 8
+logging:
+  wandb:
+    project: "cloud-forecasting-transformer-try”
+```  
+`command`:
+```
+python ./scripts/cuboid_transformer/ims/train_cuboid_ims.py --ckpt best.ckpt --cfg additional_cfg.yaml
+```
+
+The training of the baselines share the same concepts. </br>
+You can read more about the possible arguments in [ims_train.py](./src/earthformer/train/README.md).
+
+The best weights and their matching configurations are provided here: 
 
 | Model       | Script Folder                                                                     | Pretrained Weights                                                                                                     | Config                                                        |
 |---------------|-----------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------|
