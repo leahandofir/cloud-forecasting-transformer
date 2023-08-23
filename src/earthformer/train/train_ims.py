@@ -219,7 +219,8 @@ class IMSModule(pl.LightningModule):
             in_seq: torch.Tensor,
             target_seq: torch.Tensor,
             pred_seq_list: torch.Tensor,
-            mode: str = "train"):
+            mode: str = "train",
+            scale: bool = True):
 
         # determine which examples are candidates to visualize
         if mode == "train":
@@ -230,6 +231,12 @@ class IMSModule(pl.LightningModule):
             example_data_idx_list = self.hparams.logging.visualize.test_example_data_idx_list
         else:
             raise ValueError(f"Wrong mode {mode}! Must be in ['train', 'val', 'test'].")
+
+        # scale to 0-1 values
+        if not scale:
+            in_seq = in_seq / 255.0
+            target_seq = target_seq / 255.0
+            pred_seq_list = pred_seq_list / 255.0
 
         # convert to numpy and clip the values
         in_seq = np.clip(self._torch_to_numpy(in_seq), a_min=0.0, a_max=1.0)
@@ -299,7 +306,8 @@ class IMSModule(pl.LightningModule):
                                 target_seq=y[0],
                                 pred_seq_list=y_hat[0],
                                 data_idx=data_idx,
-                                mode="val")
+                                mode="val",
+                                scale=self.hparams.dataset.preprocess.scale)
 
         if self.hparams.logging.monitor_mean_std:
             flattened_y_hat = torch.flatten(y_hat)
@@ -320,7 +328,8 @@ class IMSModule(pl.LightningModule):
                                 target_seq=y[0],
                                 pred_seq_list=y_hat[0],
                                 data_idx=data_idx,
-                                mode="test")
+                                mode="test",
+                                scale=self.hparams.dataset.preprocess.scale)
 
         loss = self.test_loss(y_hat, y)
         self._log_val_loss(loss, step=True, mode="test")

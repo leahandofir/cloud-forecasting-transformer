@@ -81,7 +81,8 @@ class CuboidIMSModule(IMSModule):
                                 target_seq=y[0],
                                 pred_seq_list=y_hat[0],
                                 data_idx=data_idx,
-                                mode="train")
+                                mode="train",
+                                scale=self.hparams.dataset.preprocess.scale)
 
         self.log('train_loss_step', loss, prog_bar=True, on_step=True, on_epoch=False)
         self.log('train_mse_loss_step', mse_loss, on_step=True, on_epoch=False)
