@@ -49,7 +49,7 @@ We have a different training script for the Cloudformer model and for each one o
 
 A simple example of training is as follows: 
 ```
-python ./scripts/cuboid_transformer/ims/train_cuboid_ims.py --cfg [cfg_ims.yaml]
+python ./scripts/cuboid_transformer/ims/train_cuboid_ims.py --cfg cfg_ims.yaml
 ``` 
 
 The training receives a configuration file in YAML format that defines the data train/test split and other training hyperparameters like the learning rate. An example of a configuration file is [cfg_ims.yaml](./scripts/cuboid_transformer/ims/cfg_ims.yaml). 
