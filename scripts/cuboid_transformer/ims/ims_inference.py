@@ -131,7 +131,7 @@ class CuboidIMSInference:
                                  plot_stride=self.plot_stride,
                                  cmap=self.cmap)
         visualize.save_example(
-            save_prefix=f'prediction_from_{self.start_time.strftime(IMAGE_NAME_FORMAT)}_with_ckpt_{self.ckpt_name}',
+            save_prefix=f'prediction_from_{self.start_time.strftime(IMAGE_NAME_FORMAT)}_with_ckpt_{self.ckpt_name.split(".")[0]}',
             in_seq=x,
             pred_seq_list=[y],
             label_list=[self.ckpt_name],
