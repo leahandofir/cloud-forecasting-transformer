@@ -22,6 +22,7 @@ class RainformerIMSModule(IMSModule):
         # load rainformer model
         self.rainformer_model = Net(
             input_channel=self.hparams.model.input_channel,
+            output_channel=self.hparams.model.output_channel,
             hidden_dim=self.hparams.model.hidden_dim,
             downscaling_factors=self.hparams.model.downscaling_factors,
             layers=self.hparams.model.layers,

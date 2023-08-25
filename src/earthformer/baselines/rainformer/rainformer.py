@@ -5,7 +5,7 @@ from torch import nn
 from earthformer.baselines.rainformer.swintransformer import StageModule, StageModule_up, StageModule_up_final
 
 class Net(nn.Module):
-    def __init__(self, input_channel, hidden_dim, downscaling_factors, layers, heads, head_dim, window_size, relative_pos_embedding):
+    def __init__(self, input_channel, output_channel, hidden_dim, downscaling_factors, layers, heads, head_dim, window_size, relative_pos_embedding):
         super(Net, self).__init__()
         self.stage1 = StageModule(in_channels=input_channel, hidden_dimension=hidden_dim, layers=layers[0],
                                   downscaling_factor=downscaling_factors[0], num_heads=heads[0], head_dim=head_dim,
@@ -37,10 +37,9 @@ class Net(nn.Module):
                                      layers=layers[1], upscaling_factor=downscaling_factors[1], num_heads=heads[1], head_dim=head_dim,
                                      window_size=window_size, relative_pos_embedding=relative_pos_embedding, h_w=[96, 96])
 
-        self.stage8 = StageModule_up_final(in_channels=hidden_dim * 2, hidden_dimension=input_channel,
+        self.stage8 = StageModule_up_final(in_channels=hidden_dim * 2, hidden_dimension=output_channel,
                                      layers=layers[0], upscaling_factor=downscaling_factors[0], num_heads=heads[0],
-                                     head_dim=head_dim,
-                                     window_size=window_size, relative_pos_embedding=relative_pos_embedding, h_w=[384, 384])
+                                     head_dim=head_dim, window_size=window_size, relative_pos_embedding=relative_pos_embedding, h_w=[384, 384])
 
     def forward(self, x):
         x1 = self.stage1(x)     # (4, 96, 96, 96)

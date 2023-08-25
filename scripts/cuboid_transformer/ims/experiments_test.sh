@@ -13,10 +13,14 @@
 # fss_scale=5
 /home/theator/.pyenv/versions/leah/bin/python /home/theator/leah/cloud-forecasting-transformer/scripts/cuboid_transformer/ims/train_cuboid_ims.py --ckpt /media/leah/logging/our_logs/version_20/checkpoints/'model-epoch=017.ckpt' --test=True --cfg /home/theator/leah/cloud-forecasting-transformer/scripts/cuboid_transformer/ims/additional_cfg.yaml --results-dir /media/leah/results
 # mse_lpips_naive
+/home/theator/.pyenv/versions/leah/bin/python /home/theator/leah/cloud-forecasting-transformer/scripts/cuboid_transformer/ims/train_cuboid_ims.py --ckpt /media/leah/logging/our_logs/version_26/checkpoints/'model-epoch=032.ckpt' --test=True --cfg /home/theator/leah/cloud-forecasting-transformer/scripts/cuboid_transformer/ims/additional_cfg.yaml --results-dir /media/leah/results
+# fss_lpips_equal
+/home/theator/.pyenv/versions/leah/bin/python /home/theator/leah/cloud-forecasting-transformer/scripts/cuboid_transformer/ims/train_cuboid_ims.py --ckpt /media/leah/logging/our_logs/version_31/checkpoints/'model-epoch=038.ckpt' --test=True --cfg /home/theator/leah/cloud-forecasting-transformer/scripts/cuboid_transformer/ims/additional_cfg.yaml --results-dir /media/leah/results
+# mse_lpips
+/home/theator/.pyenv/versions/leah/bin/python /home/theator/leah/cloud-forecasting-transformer/scripts/cuboid_transformer/ims/train_cuboid_ims.py --ckpt /media/leah/logging/our_logs/version_32/checkpoints/'model-epoch=044.ckpt' --test=True --cfg /home/theator/leah/cloud-forecasting-transformer/scripts/cuboid_transformer/ims/additional_cfg.yaml --results-dir /media/leah/results
+
 # still not finished
 # lpips
-
-# mse_lpips
 
 # fss_lpips_wd
 
