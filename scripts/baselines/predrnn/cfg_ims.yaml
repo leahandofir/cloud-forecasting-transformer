@@ -9,10 +9,10 @@ dataset:
   batch_layout: "NTHWC"
   ims_catalog: "/home/theator/leah/cloud-forecasting-transformer/datasets/ims/data_IR_NOT_RSS/CATALOG.csv"
   ims_data_dir: "/home/theator/leah/cloud-forecasting-transformer/datasets/ims/data_IR_NOT_RSS/data"
-  start_date: [ 2018, 1, 1 ]
-  train_val_split_date: [ 2022, 9, 1 ]
-  train_test_split_date: [ 2023, 1, 1 ]
-  end_date: [ 2023, 10, 1 ]
+  start_date: [2023, 1, 1]
+  train_val_split_date: [2023, 2, 1]
+  train_test_split_date: [2023, 3, 1]
+  end_date: [2023, 4, 1]
   time_delta: 15
   raw_time_delta: 15
   shuffle: true
@@ -28,10 +28,9 @@ dataset:
 optim:
   total_batch_size: 16
   micro_batch_size: 1
-  num_workers: 8
-  seed: 0
+  num_workers: 12
   method: "adamw"
-  lr: 0.0003
+  lr: 0.00001
   wd: 0.0
   gradient_clip_val: 1.0
   max_epochs: 100
@@ -75,10 +74,10 @@ trainer:
 
 model:
   model_name: "predrnn"
-  in_len: 5 # must have params.
-  out_len: 5 # must have params.
-  input_length: 5
-  total_length: 10
+  in_len: 13 # must have params.
+  out_len: 12 # must have params.
+  input_length: 13
+  total_length: 25
   img_channel: 1
   img_width: 384
   num_hidden: [ 384, 384, 384, 384 ]

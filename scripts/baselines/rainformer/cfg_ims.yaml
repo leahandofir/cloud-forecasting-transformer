@@ -1,20 +1,21 @@
 dataset:
   dataset_name: "ims"
   img_type: "MIDDLE_EAST_IR"
-  seq_len: 18
-  raw_seq_len: 72
-  stride: 9
+  seq_len: 25
+  raw_seq_len: 45
+  stride: 12
   layout: "THWC"
   raw_img_shape: [600, 600, 1]
   batch_layout: "NTHWC"
-  ims_catalog: null
-  ims_data_dir: null
+  ims_catalog: "/home/theator/leah/cloud-forecasting-transformer/datasets/ims/data_IR_NOT_RSS/CATALOG.csv"
+  ims_data_dir: "/home/theator/leah/cloud-forecasting-transformer/datasets/ims/data_IR_NOT_RSS/data"
   start_date: [2023, 1, 1]
   train_val_split_date: [2023, 2, 1]
   train_test_split_date: [2023, 3, 1]
   end_date: [2023, 4, 1]
-  time_delta: 10
-  raw_time_delta: 5
+  time_delta: 15
+  raw_time_delta: 15
+  shuffle: true
   preprocess:
     grayscale: true
     crop:
@@ -22,32 +23,40 @@ dataset:
       left: 200
       height: 384
       width: 384
-    scale: false
+    scale: true
 
 optim:
-  total_batch_size: 32
+  total_batch_size: 24
   micro_batch_size: 1
-  num_workers: 0
-  seed: 0
+  num_workers: 12
   method: "adamw"
-  lr: 0.001
+  lr: 0.003
   wd: 0.0
   gradient_clip_val: 1.0
-  max_epochs: 10
+  max_epochs: 100
   # scheduler
   lr_scheduler_mode: "plateau"
   scheduler:
     mode: "min"
     factor: 0.1
     patience: 5
+  # early stopping
+  early_stop: true
+  early_stop_mode: "min"
+  early_stop_patience: 20
   # checkpoints
-  save_top_k: 1
+  save_top_k: 6
+  skill_score:
+    metrics_list: [ 'csi', 'mae', 'mse' ]
+    threshold_list: [ 145, 160, 180, 200, 220 ]
+    threshold_weights: null
 
 logging:
   logging_prefix: "Rainformer_IMS"
   monitor_lr: true
   monitor_device: false
   track_grad_norm: -1
+  monitor_mean_std: false
   use_tensorbaord: false
   use_csv: false
   use_wandb: true
@@ -70,10 +79,10 @@ trainer:
   accelerator: gpu
 
 model:
-  model_name: "rainformer_model"
-  in_len: 9
-  out_len: 9
-  input_channel: 9
+  model_name: "rainformer"
+  in_len: 13
+  out_len: 12
+  input_channel: 5
   hidden_dim: 96
   downscaling_factors: [4, 2, 2, 2]
   layers: [2, 2, 2, 2]
