@@ -13,6 +13,9 @@ represent the prediction of the next satellite images following the input sequen
 |  Input  |  Target  | Prediction |
 |:-------------------------:|:-------------------------:|:-------------------------:|
 |  <img src="./images_for_readme/test_0_input.gif" width="200"/>  |  <img src="./images_for_readme/test_0_target.gif" width="200"/>  |  <img src="./images_for_readme/test_0_lpips_wd.gif" width="200"/>  |
+|  <img src="./images_for_readme/test_524_input.gif" width="200"/>  |  <img src="./images_for_readme/test_524_target.gif" width="200"/>  |  <img src="./images_for_readme/test_524_lpips_wd.gif" width="200"/>  |
+|  <img src="./images_for_readme/test_566_input.gif" width="200"/>  |  <img src="./images_for_readme/test_566_target.gif" width="200"/>  |  <img src="./images_for_readme/test_566_lpips_wd.gif" width="200"/>  |
+
 
 </center>
 
