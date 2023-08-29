@@ -14,7 +14,6 @@ from earthformer.visualization.ims.ims_visualize import IMSVisualize
 
 START_TIME_FORMAT = "%Y%m%d%H%M"
 IMAGE_NAME_FORMAT = "%Y%m%d%H%M"
-SUPPORTED_FORMATS = ('png',)
 
 pretrained_checkpoints_dir = cfg.pretrained_checkpoints_dir
 
@@ -32,13 +31,11 @@ class CuboidIMSInference:
                  top: int,
                  width: int,
                  height: int,
-                 img_format: str = 'png',
                  output_dir: str = './'):
         """
         ckpt: The path of the checkpoint we want to load.
         data_dir: The path of directory containing the images.
         start_time: The time of the first frame in the sequence.
-        img_format: The file format of the images.
         output_dir: The output directory, the output is a summary file of the prediction.
         fs: The font size in the summary.
         figsize: The size of the images in the summary.
@@ -76,8 +73,6 @@ class CuboidIMSInference:
         self.output_dir = output_dir
         os.makedirs(self.output_dir, exist_ok=True) # creates output_dir if does not exist
         self.start_time = datetime.strptime(start_time, START_TIME_FORMAT)
-        assert img_format in SUPPORTED_FORMATS, "Unsupported image format!"
-        self.img_format = img_format
 
         # take checkpoint defaults if None
         if left is None:
@@ -111,16 +106,15 @@ class CuboidIMSInference:
         time_delta = timedelta(minutes=self.time_delta)
 
         for i in range(self.in_len):
-            frame_path = os.path.join(self.data_dir, f"{curr_time.strftime(IMAGE_NAME_FORMAT)}.{self.img_format}")
+            frame_path = os.path.join(self.data_dir, f"{curr_time.strftime(IMAGE_NAME_FORMAT)}.png")
             if not os.path.exists(frame_path):
                 print(f"Did not find input frame of time {curr_time}!")
                 sys.exit()
 
-            if self.img_format == "png":
-                h, w, raw_pixels = png.Reader(file=open(frame_path, "rb")).asRGBA8()[:3]
-                pixels = np.array([list(row) for row in raw_pixels], dtype="float32").reshape((h, w, 4))
-                raw_x.append(pixels)
-                curr_time += time_delta
+            h, w, raw_pixels = png.Reader(file=open(frame_path, "rb")).asRGBA8()[:3]
+            pixels = np.array([list(row) for row in raw_pixels], dtype="float32").reshape((h, w, 4))
+            raw_x.append(pixels)
+            curr_time += time_delta
 
         return raw_x
 
@@ -169,8 +163,6 @@ def get_parser():
                         help=f"the time of the first frame in the input in the following format {START_TIME_FORMAT}.")  #TODO: check the validity of the start-time
     parser.add_argument('--output-dir', default="./", type=str,
                         help="the path where the inference will be saved at.")
-    parser.add_argument('--img-format', default="png", type=str,
-                        help=f"the format of the input images.")
     parser.add_argument('--fs', default=None, type=int,
                         help=f"the font size in the visualization of the output.")
     parser.add_argument('--figsize', default=None, type=list,
