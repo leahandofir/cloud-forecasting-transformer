@@ -8,7 +8,7 @@ The full argument list for *ims_inference.py* is as follows:
 
 **`--start-time`** **`(required)`**: the time of the first frame in the input (in the format %Y%m%d%H%M).
 
-**`--output-dir`** **`(default="./")`**: the path where the inference will be saved at.
+**`--output-dir`** **`(default = "./")`**: the path where the inference will be saved at.
 
 **`--fs`**: the font size in the visualization of the output.
 
