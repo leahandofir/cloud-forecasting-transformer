@@ -2,15 +2,13 @@
 
 The full argument list for *ims_inference.py* is as follows: 
 
-**`--ckpt (required)`**: the checkpoint of the model we want to inference with. 
+**`--ckpt`** **`(required)`**: the checkpoint of the model we want to inference with. 
 
-**`--data-dir (required)`**: the path where the images are at (in the format %Y%m%d%H%M). the image files has to be in PNG format.
+**`--data-dir`** **`(required)`**: the path where the images are at (in the format %Y%m%d%H%M). the image files has to be in PNG format.
 
-**`--start-time (required)`**: the time of the first frame in the input (in the format %Y%m%d%H%M).
+**`--start-time`** **`(required)`**: the time of the first frame in the input (in the format %Y%m%d%H%M).
 
-**`--output-dir`** (default="./"): the path where the inference will be saved at.
-
-**`--img-format`** (default="png"): the format of the input images.
+**`--output-dir`** **`(default="./")`**: the path where the inference will be saved at.
 
 **`--fs`**: the font size in the visualization of the output.
 
