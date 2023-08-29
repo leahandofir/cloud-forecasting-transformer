@@ -1,12 +1,10 @@
 ## Cloud Forcasting Transformer
 
 ### Introduction
-Our work tackles the problem of cloud cover nowcasting using Deep Learning. Nowcasting is a field of meteorology which aims at forecasting weather for a short term of up to
-a few hours. Cloud cover, as the name suggests, refers the fraction of the sky covered by clouds at some geographical location. Our work bases on the Earthformer, a transformer model created by Amazon science. 
-We train the Earthformer on our original dataset composed of satellite images provided by the Israeli Meteorological Service.
+Our work tackles the problem of cloud cover nowcasting using Deep Learning. Nowcasting is a field of meteorology which aims at forecasting weather for a short term of up to a few hours. Cloud cover, as the name suggests, refers to the fraction of the sky covered by clouds at some geographical location. Our work bases on the Earthformer, a Transformer model created by Amazon science. 
+We train the Earthformer on our original dataset composed of satellite images provided by the Israeli Meteorological Service (IMS).
 
-The model's input is a sequence of 13 satellite images taken 15 minutes apart. The model's output is 12 images that
-represent the prediction of the next satellite images following the input sequence.
+The model's input is a sequence of 13 satellite images taken 15 minutes apart. The model's output is 12 images that represent the prediction of the next satellite images following the input sequence.
 
 <center>
 
@@ -62,7 +60,7 @@ When training from a checkpoint, a .ckpt file needs to be provided:
 python ./scripts/cuboid_transformer/ims/train_cuboid_ims.py --ckpt best.ckpt
 ```
 
-Although not recommended, if one wants to override the hyperparameters in the .ckpt file, it can be done by giving a .yaml configuration file which overrides only the desired attributes. For example: 
+Although not recommended, if one wants to override the hyperparameters in the .ckpt file, it can be done by giving a .yaml configuration file that overrides only the desired attributes. For example: 
 
 **additional_cfg.yaml:**
 ```
@@ -92,7 +90,7 @@ The best weights and their matching configurations are provided here:
 
 The inference script is located at [ims_inference.py](scripts/cuboid_transformer/ims/ims_inference.py). Prior to execution, one must prepare:  
 &ndash; A checkpoint file of a trained model.  
-&ndash; A directory with the input sequence in PNG format and the naming convention *`%Y%m%d%H%M.png`*.
+&ndash; A directory with the input sequence in PNG format and in the naming convention *`%Y%m%d%H%M.png`*.
 
 A simple example of inference is as follows:
 ```
