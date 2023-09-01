@@ -18,6 +18,7 @@
 /home/theator/.pyenv/versions/leah/bin/python /home/theator/leah/cloud-forecasting-transformer/scripts/cuboid_transformer/ims/train_cuboid_ims.py --ckpt /media/leah/logging/our_logs/version_31/checkpoints/'model-epoch=038.ckpt' --test=True --cfg /home/theator/leah/cloud-forecasting-transformer/scripts/cuboid_transformer/ims/additional_cfg.yaml --results-dir /media/leah/results
 # mse_lpips
 /home/theator/.pyenv/versions/leah/bin/python /home/theator/leah/cloud-forecasting-transformer/scripts/cuboid_transformer/ims/train_cuboid_ims.py --ckpt /media/leah/logging/our_logs/version_32/checkpoints/'model-epoch=044.ckpt' --test=True --cfg /home/theator/leah/cloud-forecasting-transformer/scripts/cuboid_transformer/ims/additional_cfg.yaml --results-dir /media/leah/results
+/home/theator/.pyenv/versions/leah/bin/python /home/theator/leah/cloud-forecasting-transformer/scripts/cuboid_transformer/ims/train_cuboid_ims.py --ckpt /media/leah/logging/our_logs/version_32/checkpoints/'model-epoch=039.ckpt' --test=True --cfg /home/theator/leah/cloud-forecasting-transformer/scripts/cuboid_transformer/ims/additional_cfg.yaml --results-dir /media/leah/results
 
 # still not finished
 # lpips
@@ -27,3 +28,10 @@
 # fss_mse
 
 # fss_lpips_mse
+
+# baselines
+# rainformer
+/home/theator/.pyenv/versions/leah/bin/python /home/theator/leah/cloud-forecasting-transformer/scripts/baselines/rainformer/train_rainformer_ims.py --ckpt /media/leah/logging_rainformer/our_logs/version_2/checkpoints/'model-epoch=029.ckpt' --test=True --cfg /home/theator/leah/cloud-forecasting-transformer/scripts/baselines/rainformer/additional_cfg.yaml --results-dir /media/leah/results_rainformer
+
+# predrnn
+/home/theator/.pyenv/versions/leah/bin/python /home/theator/leah/cloud-forecasting-transformer/scripts/baselines/predrnn/train_predrnn_ims.py --ckpt /media/leah/logging_predrnn/our_logs/version_2/checkpoints/'model-epoch=012.ckpt' --test=True --cfg /home/theator/leah/cloud-forecasting-transformer/scripts/baselines/predrnn/additional_cfg.yaml --results-dir /media/leah/results_predrnn

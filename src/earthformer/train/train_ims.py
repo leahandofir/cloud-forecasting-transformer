@@ -90,7 +90,7 @@ class IMSModule(pl.LightningModule):
             os.makedirs(self.our_save_dir, exist_ok=True)
         else:
             if logging_dir is None:
-                logging_dir = os.path.join(self.current_dir, "../../../scripts/cuboid_transformer/ims/logging")
+                logging_dir = os.path.join(self.current_dir, "./logging")
             self.save_dir = logging_dir
             os.makedirs(self.save_dir, exist_ok=True)
             self.our_save_dir = os.path.join(self.save_dir, "our_logs")
