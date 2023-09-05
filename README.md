@@ -114,3 +114,5 @@ SEVIR: https://sevir.mit.edu/
 PredRNN: https://github.com/thuml/predrnn-pytorch
 
 Rainformer: https://github.com/Zjut-MultimediaPlus/Rainformer
+
+Special thanks to [Theator](https://theator.io) for providing us with compute resources :heart:
