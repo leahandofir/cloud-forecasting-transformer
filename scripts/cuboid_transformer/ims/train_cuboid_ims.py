@@ -29,21 +29,15 @@ class CuboidIMSModule(IMSModule):
         self.vgg_model = Vgg16() if (self.hparams.optim.vgg.enabled or self.hparams.optim.loss.coefficients.vgg > 0) else None
         self.lpips_loss = lpips.LPIPS(net=self.hparams.optim.lpips.net) if \
             (self.hparams.optim.lpips.enabled or self.hparams.optim.loss.coefficients.lpips > 0) else None
-        # FSS of more than one threshold if a list of thresholds is provided
-        if type(self.hparams.optim.fss.threshold) == int:
-            self.hparams.optim.fss.threshold = [self.hparams.optim.fss.threshold]
-        fss_functions = []
-        for tau in self.hparams.optim.fss.threshold:
-            fss_functions.append(FSSLoss(threshold=tau,
-                                         scale=self.hparams.optim.fss.scale,
-                                         smooth_factor=self.hparams.optim.fss.smooth_factor,
-                                         hwc=self.hparams.model.hwc,
-                                         seq_len=self.hparams.model.out_len,
-                                         pixel_scale=self.hparams.dataset.preprocess.scale,
-                                         strategy=self.hparams.optim.fss.strategy,
-                                         minimize=True,
-                                         device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')))
-        self.fss_loss = lambda y, y_hat: torch.mean([f(target=y, output=y_hat) for f in fss_functions])
+        self.fss_loss = FSSLoss(threshold=self.hparams.optim.fss.threshold,
+                                scale=self.hparams.optim.fss.scale,
+                                smooth_factor=self.hparams.optim.fss.smooth_factor,
+                                hwc=self.hparams.model.hwc,
+                                seq_len=self.hparams.model.out_len,
+                                pixel_scale=self.hparams.dataset.preprocess.scale,
+                                strategy=self.hparams.optim.fss.strategy,
+                                minimize=True,
+                                device=torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
 
     def forward(self, x):
         return self.cuboid_attention_model(x)
