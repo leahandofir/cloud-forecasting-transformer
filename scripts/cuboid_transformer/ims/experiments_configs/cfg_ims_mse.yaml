@@ -1,0 +1,161 @@
+dataset:
+  dataset_name: "ims"
+  img_type: "MIDDLE_EAST_IR"
+  seq_len: 25
+  raw_seq_len: 45
+  stride: 12
+  layout: "THWC"
+  raw_img_shape: [600, 600, 1]
+  batch_layout: "NTHWC"
+  ims_catalog: "/home/theator/leah/cloud-forecasting-transformer/datasets/ims/data_IR_NOT_RSS/CATALOG.csv"
+  ims_data_dir: "/home/theator/leah/cloud-forecasting-transformer/datasets/ims/data_IR_NOT_RSS/data"
+  start_date: [ 2018, 1, 1 ]
+  train_val_split_date: [ 2022, 9, 1 ]
+  train_test_split_date: [ 2023, 1, 1 ]
+  end_date: [ 2023, 10, 1 ]
+  time_delta: 15
+  raw_time_delta: 15
+  shuffle: true
+  preprocess:
+    grayscale: true
+    crop:
+      top: 200
+      left: 200
+      height: 384
+      width: 384
+    scale: true
+
+optim:
+  total_batch_size: 16
+  micro_batch_size: 1
+  num_workers: 12 # 1/2 the amount of cores
+  method: "adamw"
+  lr: 0.00025
+  wd: 0.0
+  gradient_clip_val: 1.0
+  max_epochs: 100
+  # scheduler
+  lr_scheduler_mode: "cosine"
+  min_lr_ratio: 1.0e-3
+  warmup_min_lr_ratio: 0.0
+  warmup_percentage: 0.2
+  # early stopping
+  early_stop: true
+  early_stop_mode: "min"
+  early_stop_patience: 20
+  # checkpoints
+  save_top_k: 6
+  skill_score:
+    metrics_list: [ 'csi', 'mae', 'mse' ]
+    threshold_list: [ 145, 160, 180, 200, 220 ]
+    threshold_weights: null
+  # loss
+  lpips:
+    enabled: false
+    net: "vgg"
+  vgg:
+    enabled: false
+    layer: relu4_3
+  fss:
+    threshold: 160
+    scale: 5
+    smooth_factor: 20
+    strategy: "tanh"
+  loss_warmup:
+    epochs: 0
+    coefficients:
+      mse: 1.0
+      vgg: 0.0
+      fss: 0.0
+      lpips: 0.0
+  loss:
+    coefficients:
+      mse: 1.0
+      vgg: 0.0
+      fss: 0.0
+      lpips: 0.0
+
+logging:
+  logging_prefix: "Cuboid_IMS"
+  monitor_lr: true
+  monitor_device: false
+  track_grad_norm: -1
+  monitor_mean_std: false
+  use_tensorbaord: false
+  use_csv: false
+  use_wandb: true
+  wandb:
+    project: "cloud-forecasting-transformer"
+  visualize:
+    train_example_data_idx_list: [0, 10, 20 ,50]
+    val_example_data_idx_list: [0, 10, 20, 50]
+    test_example_data_idx_list: [0, 80, 160, 240, 320, 400]
+    eval_example_only: false
+    fs: 10
+    figsize: [ 24, 8 ]
+    plot_stride: 2
+    cmap: "pysteps"
+
+trainer:
+  check_val_every_n_epoch: 1
+  log_step_ratio: 0.001
+  precision: 32
+  accelerator: gpu
+  fss:
+    enabled: true
+    threshold: 160
+    scale: 5
+
+model:
+  model_name: cuboid_attention_model
+  in_len: 13
+  out_len: 12
+  hwc: [384, 384, 1]
+  base_units: 128
+  block_units: null
+  scale_alpha: 1.0
+  enc_depth: [1, 1]
+  dec_depth: [1, 1]
+  enc_use_inter_ffn: true
+  dec_use_inter_ffn: true
+  dec_hierarchical_pos_embed: false
+  downsample: 2
+  downsample_type: "patch_merge"
+  upsample_type: "upsample"
+  num_global_vectors: 8
+  use_dec_self_global: false
+  dec_self_update_global: true
+  use_dec_cross_global: false
+  use_global_vector_ffn: false
+  use_global_self_attn: true
+  separate_global_qkv: true
+  global_dim_ratio: 1
+  self_pattern: "axial"
+  cross_self_pattern: "axial"
+  cross_pattern: "cross_1x1"
+  dec_cross_last_n_frames: null
+  attn_drop: 0.1
+  proj_drop: 0.1
+  ffn_drop: 0.1
+  num_heads: 4
+  ffn_activation: "gelu"
+  gated_ffn: false
+  norm_layer: "layer_norm"
+  padding_type: "zeros"
+  pos_embed_type: "t+h+w"
+  use_relative_pos: true
+  self_attn_use_final_proj: true
+  dec_use_first_self_attn: false
+  z_init_method: "zeros"
+  checkpoint_level: 0
+  initial_downsample_type: "stack_conv"
+  initial_downsample_activation: "leaky"
+  initial_downsample_stack_conv_num_layers: 3
+  initial_downsample_stack_conv_dim_list: [16, 64, 128]
+  initial_downsample_stack_conv_downscale_list: [3, 2, 2]
+  initial_downsample_stack_conv_num_conv_list: [2, 2, 2]
+  attn_linear_init_mode: "0"
+  ffn_linear_init_mode: "0"
+  conv_init_mode: "0"
+  down_up_linear_init_mode: "0"
+  norm_init_mode: "0"
