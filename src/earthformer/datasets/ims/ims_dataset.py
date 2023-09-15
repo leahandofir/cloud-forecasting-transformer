@@ -11,7 +11,7 @@ from typing import List, Union, Dict, Sequence
 from earthformer.config import cfg
 
 # IMS dataset constants
-IMS_IMG_TYPES = {"MIDDLE_EAST_VIS", "MIDDLE_EAST_DAY_CLOUDS", "MIDDLE_EAST_COLORED", "MIDDLE_EAST_IR"}
+IMS_IMG_TYPES = {"MIDDLE_EAST_VIS", "MIDDLE_EAST_IR"}
 VALID_LAYOUTS = {'THWC'}
 VALID_CHANNELS = (1, 3, 4)
 
@@ -50,8 +50,10 @@ class IMSDataset(Dataset):
         # files and directories parameters
         if ims_catalog is None:
             ims_catalog = IMS_CATALOG
+
         if ims_data_dir is None:
             ims_data_dir = IMS_DATA_DIR
+
         if isinstance(ims_catalog, str):
             self.catalog = pd.read_csv(ims_catalog, low_memory=False)
         else:
