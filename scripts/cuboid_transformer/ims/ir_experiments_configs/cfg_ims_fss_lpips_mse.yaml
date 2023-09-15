@@ -62,7 +62,7 @@ optim:
     smooth_factor: 20
     strategy: "tanh"
   loss_warmup:
-    epochs: 1
+    epochs: 0
     coefficients:
       mse: 1.0
       vgg: 0.0
@@ -70,9 +70,9 @@ optim:
       lpips: 0.0
   loss:
     coefficients:
-      mse: 100.0
+      mse: 20.0
       vgg: 0.0
-      fss: 10.0
+      fss: 1.0
       lpips: 2.0
 
 logging:
