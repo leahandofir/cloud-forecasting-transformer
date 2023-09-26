@@ -275,25 +275,30 @@ class IMSModule(pl.LightningModule):
         dm.setup()
         return dm
 
-    def _log_val_loss(self, loss, step=True, mode="val"):
+    def _log_val_scores(self, scores, step=True, mode="val"):
         # set parameters considering the mode
         metrics_list = ["csi", "mae", "mse"] if mode == "test" else self.hparams.optim.skill_score.metrics_list
         label = "step" if step else "epoch"
         logging_params = dict(on_step=True, on_epoch=False) if step else dict(sync_dist=True, on_epoch=True)
 
-        detached_loss = self._torch_to_numpy(loss)
+        detached_scores = self._torch_to_numpy(scores)
 
         # calculate validation/test score over all considered metrics after normalizing the units
-        self.log(f'{mode}_loss_{label}', np.mean([detached_loss[i] * VALIDATION_METRICS_WEIGHTS[label] for i, label \
+        self.log(f'{mode}_loss_{label}', np.mean([detached_scores[i] * VALIDATION_METRICS_WEIGHTS[label] for i, label \
                                                      in enumerate(metrics_list)]), **logging_params)
 
         # log each metric separately
-        val_loss_labels = [f"{mode}_{label}_{s}" for s in metrics_list]
+        val_scores_labels = [f"{mode}_{label}_{s}" for s in metrics_list]
 
         if len(metrics_list) > 1:
-            self.log_dict(dict(zip(val_loss_labels, detached_loss)), **logging_params)
+            self.log_dict(dict(zip(val_scores_labels, detached_scores)), **logging_params)
         else:
-            self.log(val_loss_labels[0], float(detached_loss), **logging_params)
+            self.log(val_scores_labels[0], float(detached_scores), **logging_params)
+
+    def _log_csi_per_threshold(self, csi_per_threshold):
+        # log the csi score per threshold - only for epoch!
+        for i, tau in enumerate(self.hparams.optim.skill_score.threshold_list):
+            self.log(f'csi_score_{tau}', 1.0 - csi_per_threshold[i], sync_dist=True, on_epoch=True)
 
     def compute_validation_loss(self, batch_idx, start_time, x, y, y_hat):
         # take the first sample in any microbatch
@@ -315,7 +320,7 @@ class IMSModule(pl.LightningModule):
             self.log('val_y_hat_std', torch.std(flattened_y_hat), on_step=True, on_epoch=False)
 
         loss = self.validation_loss(y_hat, y)
-        self._log_val_loss(loss, step=True)
+        self._log_val_scores(loss, step=True)
 
     def compute_test_loss(self, batch_idx, start_time, x, y, y_hat):
         # take the first sample in any microbatch
@@ -332,15 +337,17 @@ class IMSModule(pl.LightningModule):
                                 scale=self.hparams.dataset.preprocess.scale)
 
         loss = self.test_loss(y_hat, y)
-        self._log_val_loss(loss, step=True, mode="test")
+        self._log_val_scores(loss, step=True, mode="test")
 
     def validation_epoch_end(self, outputs):
         epoch_loss = self.validation_loss.compute()
-        self._log_val_loss(epoch_loss, step=False)
+        self._log_val_scores(epoch_loss, step=False)
 
     def test_epoch_end(self, outputs):
         epoch_loss = self.test_loss.compute()
-        self._log_val_loss(epoch_loss, step=False, mode="test")
+        csi_per_threshold = self.test_loss.calculate_csi_per_threshold()
+        self._log_val_scores(epoch_loss, step=False, mode="test")
+        self._log_csi_per_threshold(csi_per_threshold)
         self.test_loss.reset()
 
 

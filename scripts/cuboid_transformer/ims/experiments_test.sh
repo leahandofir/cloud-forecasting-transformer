@@ -25,13 +25,14 @@
 /home/theator/.pyenv/versions/leah/bin/python /home/theator/leah/cloud-forecasting-transformer/scripts/cuboid_transformer/ims/train_cuboid_ims.py --ckpt /media/leah/logging/our_logs/version_36/checkpoints/'model-epoch=043.ckpt' --test=True --cfg /home/theator/leah/cloud-forecasting-transformer/scripts/cuboid_transformer/ims/additional_cfg.yaml --results-dir /media/leah/results
 # fss_scale=1_lpips
 /home/theator/.pyenv/versions/leah/bin/python /home/theator/leah/cloud-forecasting-transformer/scripts/cuboid_transformer/ims/train_cuboid_ims.py --ckpt /media/leah/logging/our_logs/version_39/checkpoints/'model-epoch=027.ckpt' --test=True --cfg /home/theator/leah/cloud-forecasting-transformer/scripts/cuboid_transformer/ims/additional_cfg.yaml --results-dir /media/leah/results
-
-# still not finished
 # mse
+/home/theator/.pyenv/versions/leah/bin/python /home/theator/leah/cloud-forecasting-transformer/scripts/cuboid_transformer/ims/train_cuboid_ims.py --ckpt /media/leah/logging/our_logs/version_40/checkpoints/'model-epoch=043.ckpt' --test=True --cfg /home/theator/leah/cloud-forecasting-transformer/scripts/cuboid_transformer/ims/additional_cfg.yaml --results-dir /media/leah/results
+# fss_lpips_mse - still improving, can run more!
+/home/theator/.pyenv/versions/leah/bin/python /home/theator/leah/cloud-forecasting-transformer/scripts/cuboid_transformer/ims/train_cuboid_ims.py --ckpt /media/leah/logging/our_logs/version_42/checkpoints/'model-epoch=043.ckpt' --test=True --cfg /home/theator/leah/cloud-forecasting-transformer/scripts/cuboid_transformer/ims/additional_cfg.yaml --results-dir /media/leah/results
 
+# need to run
 # lpips
-
-# fss_lpips_mse
+# fss_lpips_mse_vis
 
 # baselines
 # rainformer

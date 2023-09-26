@@ -48,12 +48,21 @@ class IMSSkillScore(Metric):
                        default=torch.tensor(0.0),
                        dist_reduce_fx="sum")
 
-    def csi(self):
-        # calculate CSI for each threshold and calculate weighted average
+    def calculate_csi_per_threshold(self):
+        """
+        Returns the CSI value for each threshold.
+        Note: we added this function mainly for further investigation of the
+        experiments results and not as evaluation metric.
+        """
         csi_per_threshold = torch.zeros(self.threshold_count)
         for i in range(self.threshold_count):
             csi_per_threshold[i] = self.hits[i] / (self.hits[i] + self.misses[i] + self.fas[i])
-        return 1 - torch.sum(csi_per_threshold * self.threshold_weights) # because it is going to be minimized
+        return csi_per_threshold
+
+    def csi(self):
+        # calculate CSI for each threshold and calculate weighted average
+        csi_per_threshold = self.calculate_csi_per_threshold()
+        return 1 - torch.sum(csi_per_threshold * self.threshold_weights)  # because it is going to be minimized
 
     def mae(self):
         return self.sum_abs_error / self.total_numel
@@ -90,7 +99,7 @@ class IMSSkillScore(Metric):
 
         self.total_numel += target.numel()
         self.sum_abs_error += torch.sum(torch.abs(scaled_prediction - scaled_target))
-        self.sum_squared_error += torch.sum((scaled_prediction - scaled_target)**2)
+        self.sum_squared_error += torch.sum((scaled_prediction - scaled_target) ** 2)
 
     def compute(self):
         """
