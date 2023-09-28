@@ -33,7 +33,7 @@ class IMSLightningDataModule(LightningDataModule):
         self.data_set_kwargs = kwargs
 
     def prepare_data(self) -> None:
-        # TODO: download the data
+        # this is where we would have downloaded the dataset if it was accessible online
         pass
 
     def setup(self, stage=None) -> None:

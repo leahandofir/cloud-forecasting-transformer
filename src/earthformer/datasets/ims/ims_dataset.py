@@ -1,5 +1,3 @@
-# TODO: verify that we took every important thing from SEVIR code
-
 import torch
 from torch.utils.data import Dataset
 from torchvision import transforms
