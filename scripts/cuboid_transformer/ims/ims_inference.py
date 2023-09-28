@@ -163,7 +163,7 @@ def get_parser():
                         help="the path where the inference will be saved at.")
     parser.add_argument('--fs', default=None, type=int,
                         help=f"the font size in the visualization of the output.")
-    parser.add_argument('--figsize', default=None, type=list,
+    parser.add_argument('--figsize', default=None, nargs='+', type=list,
                         help=f"the figure size (height and width, separated with a space) of the visualization of the "
                              f"output.")
     parser.add_argument('--plot-stride', default=None, type=int,
