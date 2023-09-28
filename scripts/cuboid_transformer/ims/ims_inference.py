@@ -29,8 +29,6 @@ class CuboidIMSInference:
                  cmap: str,
                  left: int,
                  top: int,
-                 width: int,
-                 height: int,
                  output_dir: str = './'):
         """
         ckpt: The path of the checkpoint we want to load.
@@ -41,7 +39,7 @@ class CuboidIMSInference:
         figsize: The size of the images in the summary.
         plot_stride: The "jumps" between frames in the summary.
         cmap: the cmap that is used for the images in the summary.
-        left, top, width, height: Crop input images parameters.
+        left, top: Crop input images parameters.
         """
         self.ckpt = ckpt
         self.ckpt_name = os.path.basename(ckpt)
@@ -79,10 +77,10 @@ class CuboidIMSInference:
             left = dataset_cfg["preprocess"]["crop"]["left"]
         if top is None:
             top = dataset_cfg["preprocess"]["crop"]["top"]
-        if width is None:
-            width = dataset_cfg["preprocess"]["crop"]["width"]
-        if height is None:
-            height = dataset_cfg["preprocess"]["crop"]["height"]
+
+        # take from checkpoint, we cannot change the input dimensions once the model is trained
+        width = dataset_cfg["preprocess"]["crop"]["width"]
+        height = dataset_cfg["preprocess"]["crop"]["height"]
 
         self.crop = dict(left=left, top=top, width=width, height=height)
 
@@ -177,12 +175,6 @@ def get_parser():
                              f"if not set, taken from checkpoint.")
     parser.add_argument('--top', default=None, type=int,
                         help=f"set where to start cropping the image from the top."
-                             f"if not set, taken from checkpoint.")
-    parser.add_argument('--width', default=None, type=int,
-                        help=f"set the width of the cropped image."
-                             f"if not set, taken from checkpoint.")
-    parser.add_argument('--height', default=None, type=int,
-                        help=f"set the height of the cropped image."
                              f"if not set, taken from checkpoint.")
     return parser
 
