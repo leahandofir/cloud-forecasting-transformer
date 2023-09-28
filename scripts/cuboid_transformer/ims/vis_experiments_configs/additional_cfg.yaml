@@ -1,0 +1,14 @@
+logging:
+  wandb:
+    project: "cloud-forecasting-transformer-results-vis"
+  visualize:
+    test_example_data_idx_list: [0, 20, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300, 320, 340, 360, 380, 400]
+
+optim:
+  micro_batch_size: 1
+  loss:
+    coefficients:
+      mse: 1.0
+      vgg: 0.0
+      fss: 0.0
+      lpips: 0.0
