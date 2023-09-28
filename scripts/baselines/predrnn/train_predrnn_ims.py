@@ -27,6 +27,7 @@ class PredRNNIMSModule(IMSModule):
                                  args=self.hparams.model)
 
     def forward(self, x):
+        # not in use
         pass
 
     def training_step(self, batch, batch_idx):
