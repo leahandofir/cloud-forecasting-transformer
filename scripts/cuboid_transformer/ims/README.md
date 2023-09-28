@@ -21,7 +21,3 @@ The full argument list for *ims_inference.py* is as follows:
 **`--left`**: set where to start cropping the image from the left. If not set, taken from checkpoint.
 
 **`--top`**: set where to start cropping the image from the top. If not set, taken from checkpoint.
-
-**`--width`**: set the width of the cropped image. If not set, taken from checkpoint.
-
-**`--height`**: set the height of the cropped image. If not set, taken from checkpoint.
