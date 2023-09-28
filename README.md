@@ -82,9 +82,9 @@ The best weights and their matching configurations are provided here:
 
 | Model       | Script Folder                                                                     | Pretrained Weights                                                                                                     | Config                                                        |
 |---------------|-----------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------|
-| cloud-forcasting-transformer         | [train_cuboid_ims.py](./scripts/cuboid_transformer/ims/train_cuboid_ims.py)       | TODO!        | [ims_cfg.yaml](./scripts/cuboid_transformer/ims/ims_cfg.yaml) |
-| PredRNN | [train_predrnn_ims.py](./scripts/baselines/predrnn/train_predrnn_ims.py)          | | [ims_cfg.yaml](./scripts/baselines/predrnn/ims_cfg.yaml)      |
-| Rainformer | [train_rainformer_ims.py](./scripts/baselines/rainformer/train_rainformer_ims.py) | | [ims_cfg.yaml](./scripts/baselines/rainformer/ims_cfg.yaml)   |
+| cloud-forcasting-transformer         | [train_cuboid_ims.py](./scripts/cuboid_transformer/ims/train_cuboid_ims.py)       | [<span style="color: red;">TODO</span>](https://drive.google.com/file/d/1OWvhoD6CB3vwhXADyRFptjGnMVGG7N7U/view?usp=sharing)        | [cfg_ims.yaml](./scripts/cuboid_transformer/ims/cfg_ims.yaml) |
+| PredRNN | [train_predrnn_ims.py](./scripts/baselines/predrnn/train_predrnn_ims.py)          | [predrnn.ckpt](https://drive.google.com/file/d/1awLeBUUIQKFS9luneyA6lQdkaeDRMMSc/view?usp=sharing) | [cfg_ims.yaml](./scripts/baselines/predrnn/cfg_ims.yaml)      |
+| Rainformer | [train_rainformer_ims.py](./scripts/baselines/rainformer/train_rainformer_ims.py) | [rainformer.ckpt](https://drive.google.com/file/d/1PcA9r3xf1WQkim5fV1mX7Y5eoJXw5mLw/view?usp=sharing) | [cfg_ims.yaml](./scripts/baselines/rainformer/cfg_ims.yaml)   |
 
 ## Inference
 
