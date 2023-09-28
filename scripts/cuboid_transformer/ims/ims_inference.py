@@ -24,7 +24,8 @@ class CuboidIMSInference:
                  data_dir: str,
                  start_time: str,
                  fs: int,
-                 figsize: tuple,
+                 figsize_x: int,
+                 figsize_y: int,
                  plot_stride: int,
                  cmap: str,
                  left: int,
@@ -36,7 +37,7 @@ class CuboidIMSInference:
         start_time: The time of the first frame in the sequence.
         output_dir: The output directory, the output is a summary file of the prediction.
         fs: The font size in the summary.
-        figsize: The size of the images in the summary.
+        figsize_x, figsize_y: The dimensions of the images in the summary.
         plot_stride: The "jumps" between frames in the summary.
         cmap: the cmap that is used for the images in the summary.
         left, top: Crop input images parameters.
@@ -86,7 +87,7 @@ class CuboidIMSInference:
 
         # visualization
         self.fs = fs
-        self.figsize = figsize
+        self.figsize = (figsize_x, figsize_y)
         self.plot_stride = plot_stride
         self.cmap = cmap
 
@@ -163,9 +164,10 @@ def get_parser():
                         help="the path where the inference will be saved at.")
     parser.add_argument('--fs', default=None, type=int,
                         help=f"the font size in the visualization of the output.")
-    parser.add_argument('--figsize', default=None, nargs='+',
-                        help=f"the figure size (height and width, separated with a space) of the visualization of the "
-                             f"output.")
+    parser.add_argument('--figsize-x', default=24, type=int,
+                        help=f"the figure width of the visualization of the output.")
+    parser.add_argument('--figsize-y', default=8, type=int,
+                        help=f"the figure height of the visualization of the output.")
     parser.add_argument('--plot-stride', default=None, type=int,
                         help=f"the plot stride in the visualization of the output.")
     parser.add_argument('--cmap', default=None, type=str,
