@@ -78,7 +78,8 @@ class IMSVisualize:
 
         # write minutes labels
         for i in range(0, out_len, self.plot_stride):
-            ax[-1][i // self.plot_stride].set_title(f'{int(time_delta * (i + self.plot_stride))} Minutes', y=-0.25)
+            ax[-1][i // self.plot_stride].set_title(f'{int(time_delta * (i + self.plot_stride))} Minutes', y=-0.25, \
+                                                    fontsize=self.fs)
 
         # remove ticks
         for i in range(nrows):
