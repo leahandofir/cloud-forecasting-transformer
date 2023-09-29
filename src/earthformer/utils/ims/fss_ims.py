@@ -1,5 +1,3 @@
-# TODO: maybe we can try discretization of more then 1 value?
-
 import torch
 import torch.nn.functional as F
 

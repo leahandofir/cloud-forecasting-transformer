@@ -12,7 +12,9 @@ The full argument list for *ims_inference.py* is as follows:
 
 **`--fs`**: the font size in the visualization of the output.
 
-**`--figsize`**: the figure size of the visualization of the output.
+**`--figsize-x`**: the x-dimension of the figure size in the output visualization.
+
+**`--figsize-y`**: the y-dimension of the figure size in the output visualization.
 
 **`--plot-stride`**: the plot stride in the visualization of the output (meaning 'how many frames we skip when displaying the output'
 

@@ -159,7 +159,7 @@ def get_parser():
                              f"the images name has to be in the following format {IMAGE_NAME_FORMAT}."
                              "the image files has to be in PNG format.")
     parser.add_argument('--start-time', default=None, type=str, required=True,
-                        help=f"the time of the first frame in the input in the following format {START_TIME_FORMAT}.")  #TODO: check the validity of the start-time
+                        help=f"the time of the first frame in the input in the following format {START_TIME_FORMAT}.")
     parser.add_argument('--output-dir', default="./", type=str,
                         help="the path where the inference will be saved at.")
     parser.add_argument('--fs', default=None, type=int,
