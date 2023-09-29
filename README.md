@@ -1,5 +1,8 @@
 ## Cloud Forcasting Transformer
 
+### Demo
+Try our inference demo at [DEMO.ipynb](./DEMO.ipynb).
+
 ### Introduction
 Our work tackles the problem of cloud cover nowcasting using Deep Learning. Nowcasting is a field of meteorology which aims at forecasting weather for a short term of up to a few hours. Cloud cover, as the name suggests, refers to the fraction of the sky covered by clouds at some geographical location. Our work bases on the Earthformer, a Transformer model created by Amazon science. 
 We train the Earthformer on our original dataset composed of satellite images provided by the Israeli Meteorological Service (IMS).
