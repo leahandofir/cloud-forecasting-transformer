@@ -83,11 +83,11 @@ You can read more about the possible arguments in [ims_train.py](./src/earthform
 
 The best weights and their matching configurations are provided here: 
 
-| Model       | Script Folder                                                                     | Pretrained Weights                                                                                                     | Config                                                        |
-|---------------|-----------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------|
-| cloud-forcasting-transformer         | [train_cuboid_ims.py](./scripts/cuboid_transformer/ims/train_cuboid_ims.py)       | [<span style="color: red;">TODO</span>](https://drive.google.com/file/d/1OWvhoD6CB3vwhXADyRFptjGnMVGG7N7U/view?usp=sharing)        | [cfg_ims.yaml](./scripts/cuboid_transformer/ims/cfg_ims.yaml) |
-| PredRNN | [train_predrnn_ims.py](./scripts/baselines/predrnn/train_predrnn_ims.py)          | [predrnn.ckpt](https://drive.google.com/file/d/1awLeBUUIQKFS9luneyA6lQdkaeDRMMSc/view?usp=sharing) | [cfg_ims.yaml](./scripts/baselines/predrnn/cfg_ims.yaml)      |
-| Rainformer | [train_rainformer_ims.py](./scripts/baselines/rainformer/train_rainformer_ims.py) | [rainformer.ckpt](https://drive.google.com/file/d/1PcA9r3xf1WQkim5fV1mX7Y5eoJXw5mLw/view?usp=sharing) | [cfg_ims.yaml](./scripts/baselines/rainformer/cfg_ims.yaml)   |
+| Model       | Script Folder                                                                                           | Pretrained Weights                                                                                                                           | Config                                                     |
+|---------------|---------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------|
+| cloud-forcasting-transformer         | [train_cuboid_ims.py](./scripts/cuboid_transformer/ims/train_cuboid_ims.py)  | [cloudformer_checkpoints](https://drive.google.com/drive/folders/1lSEdvluW4mX7gntkwqectoZa43RZqK2u?usp=sharing) (Only the best checkpoints)  | [cofigs_ims](./scripts/cuboid_transformer/ims/ir_experiments_configs) |
+| PredRNN | [train_predrnn_ims.py](./scripts/baselines/predrnn/train_predrnn_ims.py)                                | [predrnn.ckpt](https://drive.google.com/file/d/1awLeBUUIQKFS9luneyA6lQdkaeDRMMSc/view?usp=sharing)                                           | [cfg_ims.yaml](./scripts/baselines/predrnn/cfg_ims.yaml)   |
+| Rainformer | [train_rainformer_ims.py](./scripts/baselines/rainformer/train_rainformer_ims.py)                       | [rainformer.ckpt](https://drive.google.com/file/d/1PcA9r3xf1WQkim5fV1mX7Y5eoJXw5mLw/view?usp=sharing)                                        | [cfg_ims.yaml](./scripts/baselines/rainformer/cfg_ims.yaml) |
 
 ## Inference
 
