@@ -1,5 +1,8 @@
 ## Cloud Forcasting Transformer
 
+### Paper
+You can view our paper describing the experiments and the results [here](https://drive.google.com/file/d/1GcD25bfTbjXaUONrpSCXjxuCOJ2TtYvV/view?usp=sharing). 
+
 ### Demo
 Try our inference demo at [DEMO.ipynb](https://colab.research.google.com/github/leahandofir/cloud-forecasting-transformer/blob/main/DEMO.ipynb).
 
@@ -19,6 +22,9 @@ The model's input is a sequence of 13 satellite images taken 15 minutes apart. T
 
 
 </center>
+
+### Dataset
+We created our own novel dataset for this project. Our data consists of satellite images provided by EUMETSAT of two types; VIS (Visible) and IR (Infra-Red). The dataset is not publicly available. The data is organized as .h5 files and a catalog file in a CSV format. We provide a sample of IR data [here](https://drive.google.com/drive/folders/1iOXYQ2CN4WQqNevSJSMl-WsDXItEOsPz?usp=sharing). For more information see section 3.1 in our paper.
 
 ## Installation
 ### Train
