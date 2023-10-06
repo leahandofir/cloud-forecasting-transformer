@@ -84,7 +84,12 @@ logging:
 python ./scripts/cuboid_transformer/ims/train_cuboid_ims.py --ckpt [ckpt_file_path] --cfg additional_cfg.yaml
 ```
 
-The training of the baselines share the same concepts. </br>
+To test the model we add the flag **--test=True** to the command:
+```
+python ./scripts/cuboid_transformer/ims/train_cuboid_ims.py --ckpt [ckpt_file_path] --test=True
+```
+
+The training and testing of the baselines share the same concepts. </br>
 You can read more about the possible arguments in [ims_train.py](./src/earthformer/train/README.md).
 
 The best weights and their matching configurations are provided here: 
