@@ -84,7 +84,7 @@ logging:
 python ./scripts/cuboid_transformer/ims/train_cuboid_ims.py --ckpt [ckpt_file_path] --cfg additional_cfg.yaml
 ```
 
-To test the model we add the flag **--test=True** to the command:
+To test the model we add the flag `--test=True` to the command:
 ```
 python ./scripts/cuboid_transformer/ims/train_cuboid_ims.py --ckpt [ckpt_file_path] --test=True
 ```
