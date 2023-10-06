@@ -7,12 +7,12 @@ dataset:
   layout: "THWC"
   raw_img_shape: [600, 600, 1]
   batch_layout: "NTHWC"
-  ims_catalog: "/home/theator/leah/cloud-forecasting-transformer/datasets/ims/data_IR_NOT_RSS/CATALOG.csv"
-  ims_data_dir: "/home/theator/leah/cloud-forecasting-transformer/datasets/ims/data_IR_NOT_RSS/data"
-  start_date: [ 2018, 1, 1 ]
-  train_val_split_date: [ 2022, 9, 1 ]
-  train_test_split_date: [ 2023, 1, 1 ]
-  end_date: [ 2023, 10, 1 ]
+  ims_catalog: null # for README
+  ims_data_dir: null # for README
+  start_date: [ 2023, 7, 1 ] # for README
+  train_val_split_date: [ 2023, 7, 2 ] # for README
+  train_test_split_date: [ 2023, 7, 3 ] # for README
+  end_date: [ 2023, 7, 4 ] # for README
   time_delta: 15
   raw_time_delta: 15
   shuffle: true

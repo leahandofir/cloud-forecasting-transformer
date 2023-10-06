@@ -53,14 +53,14 @@ We have a different training script for the Cloudformer model and for each one o
 
 A simple example of training is as follows: 
 ```
-python ./scripts/cuboid_transformer/ims/train_cuboid_ims.py --cfg cfg_ims.yaml
+python ./scripts/cuboid_transformer/ims/train_cuboid_ims.py --cfg ./scripts/cuboid_transformer/ims/cfg_ims.yaml
 ``` 
 
 The training receives a configuration file in YAML format that defines the data train/test split and other training hyperparameters like the learning rate. An example of a configuration file is [cfg_ims.yaml](./scripts/cuboid_transformer/ims/cfg_ims.yaml). 
 
 When training from a checkpoint, a .ckpt file needs to be provided:
 ```
-python ./scripts/cuboid_transformer/ims/train_cuboid_ims.py --ckpt best.ckpt
+python ./scripts/cuboid_transformer/ims/train_cuboid_ims.py --ckpt [ckpt_file_path]
 ```
 
 Although not recommended, if one wants to override the hyperparameters in the .ckpt file, it can be done by giving a .yaml configuration file that overrides only the desired attributes. For example: 
@@ -75,7 +75,7 @@ logging:
 ```  
 **command:**
 ```
-python ./scripts/cuboid_transformer/ims/train_cuboid_ims.py --ckpt best.ckpt --cfg additional_cfg.yaml
+python ./scripts/cuboid_transformer/ims/train_cuboid_ims.py --ckpt [ckpt_file_path] --cfg additional_cfg.yaml
 ```
 
 The training of the baselines share the same concepts. </br>
