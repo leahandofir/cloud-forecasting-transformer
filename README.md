@@ -1,7 +1,7 @@
 ## Cloud Forcasting Transformer
 
 ### Paper
-You can view our paper describing the experiments and the results [here](https://drive.google.com/file/d/1GcD25bfTbjXaUONrpSCXjxuCOJ2TtYvV/view?usp=sharing). 
+You can view our paper describing the experiments and the results [here](./PAPER.pdf). 
 
 ### Demo
 Try our inference demo at [DEMO.ipynb](https://colab.research.google.com/github/leahandofir/cloud-forecasting-transformer/blob/main/DEMO.ipynb).
