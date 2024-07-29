@@ -2,7 +2,6 @@ import argparse
 import os
 import sys
 import png
-from PIL import Image
 import numpy as np
 from datetime import datetime, timedelta
 
@@ -162,16 +161,16 @@ class CuboidIMSInference:
         # Save images
         for i in range(len(x)):
             # Convert arrays to images
-            image = Image.fromarray((x[i] * 255).astype(np.uint8))
+            image = x[i].squeeze()
             # Save image
-            image.save(os.path.join(inputs_dir, f'input_{i}.png'))
+            plt.imsave(os.path.join(inputs_dir, f'input_{i}.png'), image, cmap='gray', vmin=0, vmax=1)
             
         # Save images
         for i in range(len(y)):
             # Convert arrays to images
-            image = Image.fromarray((y[i] * 255).astype(np.uint8))
+            image = y[i].squeeze()
             # Save image
-            image.save(os.path.join(inputs_dir, f'input_{i}.png'))
+            plt.imsave(os.path.join(predictions_dir, f'output_{i}.png'), image, cmap='gray', vmin=0, vmax=1)
 
     def _preprocess(self, raw_x):
         # raw_x is a sequence of shape THWC
