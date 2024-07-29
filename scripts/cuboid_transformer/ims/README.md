@@ -23,3 +23,5 @@ The full argument list for *ims_inference.py* is as follows:
 **`--left`**: set where to start cropping the image from the left. If not set, taken from checkpoint.
 
 **`--top`**: set where to start cropping the image from the top. If not set, taken from checkpoint.
+
+**`--save-image-files`**: whether to save the idividual predicted and cropped input images as individual .png files.
