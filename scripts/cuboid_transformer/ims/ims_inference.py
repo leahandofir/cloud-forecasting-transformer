@@ -2,6 +2,7 @@ import argparse
 import os
 import sys
 import png
+from PIL import Image
 import numpy as np
 from datetime import datetime, timedelta
 
