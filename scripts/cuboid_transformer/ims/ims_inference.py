@@ -144,9 +144,9 @@ class CuboidIMSInference:
         self._save_visualization(x[0].detach().numpy(), y[0].detach().numpy())
         # save image files
         if self.save_image_files:
-            self.save_image_files(x[0].detach().numpy(), y[0].detach().numpy())
+            self._save_image_files(x[0].detach().numpy(), y[0].detach().numpy())
 
-    def save_image_files(self, x, y):
+    def _save_image_files(self, x, y):
         """
         x: a sequence of preprocessed images of dimensions [input_seq_len] * H * W * C.
         y: a sequence of preprocessed images of dimensions [output_seq_len] * H * W * C.
