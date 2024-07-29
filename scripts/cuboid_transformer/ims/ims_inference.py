@@ -152,7 +152,7 @@ class CuboidIMSInference:
         y: a sequence of preprocessed images of dimensions [output_seq_len] * H * W * C.
         """
         # Create directories if they don't exist
-        inputs_dir = os.path.join(self.output_dir, self.start_time.strftime(IMAGE_NAME_FORMAT)}, 'inputs')
+        inputs_dir = os.path.join(self.output_dir, self.start_time.strftime(IMAGE_NAME_FORMAT), 'inputs')
         predictions_dir = os.path.join(self.output_dir, self.start_time.strftime(IMAGE_NAME_FORMAT), 'predictions')
         
         os.makedirs(inputs_dir, exist_ok=True)
