@@ -30,8 +30,9 @@ class CuboidIMSInference:
                  cmap: str,
                  left: int,
                  top: int,
+                 save_image_files: bool,
                  output_dir: str = './',
-                 save_image_files: bool):
+                 ):
         """
         ckpt: The path of the checkpoint we want to load.
         data_dir: The path of directory containing the images.
