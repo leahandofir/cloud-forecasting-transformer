@@ -4,7 +4,7 @@ import sys
 import png
 import numpy as np
 from datetime import datetime, timedelta
-
+import matplotlib.pyplot as plt
 import torch
 
 from earthformer.utils.ims.load_ims import load_model
