@@ -147,10 +147,10 @@ class CuboidIMSInference:
             self.save_image_files(x[0].detach().numpy(), y[0].detach().numpy())
 
     def save_image_files(self, x, y):
-    '''
-    x: a sequence of preprocessed images of dimensions [input_seq_len] * H * W * C.
-    y: a sequence of preprocessed images of dimensions [output_seq_len] * H * W * C.
-    '''
+        """
+        x: a sequence of preprocessed images of dimensions [input_seq_len] * H * W * C.
+        y: a sequence of preprocessed images of dimensions [output_seq_len] * H * W * C.
+        """
         # Create directories if they don't exist
         inputs_dir = os.path.join(self.output_dir, self.start_time.strftime(IMAGE_NAME_FORMAT)}, 'inputs')
         predictions_dir = os.path.join(self.output_dir, self.start_time.strftime(IMAGE_NAME_FORMAT), 'predictions')
