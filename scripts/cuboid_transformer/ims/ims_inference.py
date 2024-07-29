@@ -30,7 +30,8 @@ class CuboidIMSInference:
                  cmap: str,
                  left: int,
                  top: int,
-                 output_dir: str = './'):
+                 output_dir: str = './',
+                 save_image_files: bool):
         """
         ckpt: The path of the checkpoint we want to load.
         data_dir: The path of directory containing the images.
@@ -70,6 +71,7 @@ class CuboidIMSInference:
         # configurable attributes
         self.data_dir = data_dir
         self.output_dir = output_dir
+        self.save_image_files = save_image_files
         os.makedirs(self.output_dir, exist_ok=True) # creates output_dir if does not exist
         self.start_time = datetime.strptime(start_time, START_TIME_FORMAT)
 
@@ -139,6 +141,35 @@ class CuboidIMSInference:
         y = torch.clip(y, min=0.0, max=1.0)
         # save output
         self._save_visualization(x[0].detach().numpy(), y[0].detach().numpy())
+        # save image files
+        if self.save_image_files:
+            self.save_image_files(x[0].detach().numpy(), y[0].detach().numpy())
+
+    def save_image_files(self, x, y):
+    '''
+    x: a sequence of preprocessed images of dimensions [input_seq_len] * H * W * C.
+    y: a sequence of preprocessed images of dimensions [output_seq_len] * H * W * C.
+    '''
+        # Create directories if they don't exist
+        inputs_dir = os.path.join(self.output_dir, self.start_time.strftime(IMAGE_NAME_FORMAT)}, 'inputs')
+        predictions_dir = os.path.join(self.output_dir, self.start_time.strftime(IMAGE_NAME_FORMAT), 'predictions')
+        
+        os.makedirs(inputs_dir, exist_ok=True)
+        os.makedirs(predictions_dir, exist_ok=True)
+        
+        # Save images
+        for i in range(len(x)):
+            # Convert arrays to images
+            image = Image.fromarray((x[i] * 255).astype(np.uint8))
+            # Save image
+            image.save(os.path.join(inputs_dir, f'input_{i}.png'))
+            
+        # Save images
+        for i in range(len(y)):
+            # Convert arrays to images
+            image = Image.fromarray((y[i] * 255).astype(np.uint8))
+            # Save image
+            image.save(os.path.join(inputs_dir, f'input_{i}.png'))
 
     def _preprocess(self, raw_x):
         # raw_x is a sequence of shape THWC
@@ -178,6 +209,8 @@ def get_parser():
     parser.add_argument('--top', default=None, type=int,
                         help=f"set where to start cropping the image from the top."
                              f"if not set, taken from checkpoint.")
+    parser.add_argument('--save-image-files', default=True, type=bool,
+                        help=f"save input and output images at output-dir.")
     return parser
 
 
